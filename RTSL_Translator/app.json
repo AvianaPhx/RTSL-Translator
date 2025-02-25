@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "RTSL_Translator",
-    "slug": "RTSL_Translator",
+    "name": "RTSL",
+    "slug": "RTSL",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/avatar-icon.png",
-    "scheme": "myapp",
+    "scheme": "rtsl",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

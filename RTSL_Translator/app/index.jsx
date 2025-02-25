@@ -17,7 +17,7 @@ const app = () => {
           <View>
 
             {/* Gradient Button */}
-            <Link href="/register" asChild>
+            <Link href="/sign-in" asChild>
               <Pressable>
                 <LinearGradient colors={["#A076F9", "#8461DB"]} style={styles.button}>
                   <Text style={styles.buttonText}>Get Started &gt;</Text>
@@ -29,7 +29,7 @@ const app = () => {
             <View style={styles.logText}>
               <Text style={styles.descSmall}>You already have an account?</Text>
 
-              <Link href="/login" asChild>
+              <Link href="/sign-up" asChild>
                 <Pressable>
                   <Text style={styles.loginText}>Login</Text>
                 </Pressable>

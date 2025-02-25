@@ -31,10 +31,13 @@ export default function RootLayout() {
 
   return (
     <Stack screenOptions={{headerStyle: {backgroundColor: theme.headerBackground}, headerTintColor: theme.text, headerShadowVisible: false}}>
+      
       <Stack.Screen name="index" options={{ headerShown: false, title: 'Home' }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false, title: 'Auth'}} />
 
-      <Stack.Screen name="register" options={{ headerShown: false, title: 'Register', headerTitle: 'Register' }} />
-      <Stack.Screen name="login" options={{ headerShown: false, title: 'Login', headerTitle: 'Login' }} />
+      
+      {/* <Stack.Screen name="register" options={{ headerShown: false, title: 'Register', headerTitle: 'Register' }} />
+      <Stack.Screen name="login" options={{ headerShown: false, title: 'Login', headerTitle: 'Login' }} /> */}
 
       <Stack.Screen name="+not-found" options={{headerShown: false}} />
     </Stack>
