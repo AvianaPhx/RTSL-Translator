@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "383173419641",
+    "firebase_url": "https://rtsl-translator-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "rtsl-translator",
+    "storage_bucket": "rtsl-translator.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:383173419641:android:89d75a23bcc223be94aaa8",
+        "android_client_info": {
+          "package_name": "com.galaxies.RTSL"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "383173419641-j1790pv0rq3v5j43i0ff0iq0js1ll03i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2mOE5G1Z9RQsCkHzqOru3VOFzLUd3txQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "383173419641-j1790pv0rq3v5j43i0ff0iq0js1ll03i.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "383173419641-4h7i06dqjpaqrhrnku8bockute87ivq8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.galaxies.RTSL"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
