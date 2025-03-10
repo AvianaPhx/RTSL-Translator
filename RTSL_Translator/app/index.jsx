@@ -18,7 +18,7 @@ const App = () => {
 
           <View>
             <CustomButton 
-              title="Get Started"
+              title="Get Started  &gt;"
               handlePress={() => router.push('/sign-up')}
               containerStyles="w-full mt-3"
             />
