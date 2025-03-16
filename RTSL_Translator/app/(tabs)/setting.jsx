@@ -10,8 +10,8 @@ const Setting = () => {
       {/* Header */}
       <View className="flex-row items-center justify-between mb-5">
         <View className="flex-1">
-          <Text className="text-3xl font-bold text-purple-700">Aviana Phoenix</Text>
-          <Text className="text-xl text-gray-500">@avianaphx</Text>
+          <Text className="text-4xl font-bold text-purple-700">Aviana Phoenix</Text>
+          <Text className="text-2xl text-gray-500">@avianaphx</Text>
         </View>
         <Image source={{ uri: 'https://your-avatar-url.com' }} className="w-12 h-12 rounded-full" />
       </View>
