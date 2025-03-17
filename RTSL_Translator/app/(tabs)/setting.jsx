@@ -1,9 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome } from '@expo/vector-icons';
+import TabButton from '@/components/TabButton';
+import { router, Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 const Setting = () => {
+
+  const routes = {
+    accountDetail: "/account-detail",
+    editProfile: "/edit-profile",
+    changeLanguage: "/change-language",
+    help: "/help",
+    test: "/setting"
+  }
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
+
+  const navigateTo = (path) => {
+    setIsSubmitting(true);
+  
+    setTimeout(() => {
+      setIsSubmitting(false);
+      router.push(path); 
+    });
+  };
+
   return (
     <SafeAreaView className="flex-1 p-5"> 
 
@@ -18,39 +42,82 @@ const Setting = () => {
 
       {/* Account Settings */}
       <Text className="text-gray-700 font-semibold mb-2">Account Settings</Text>
-      <TouchableOpacity className="bg-white p-4 rounded-xl flex-row justify-between mb-2">
-        <Text className="text-lg">Account Details</Text>
-        <FontAwesome name="chevron-right" size={20} color="gray" />
-      </TouchableOpacity>
-      <TouchableOpacity className="bg-white p-4 rounded-xl flex-row justify-between mb-2">
-        <Text className="text-lg">Edit Profile</Text>
-        <FontAwesome name="chevron-right" size={20} color="gray" />
-      </TouchableOpacity>
-      <TouchableOpacity className="bg-white p-4 rounded-xl flex-row justify-between mb-4">
-        <Text className="text-lg">Change Sign Language</Text>
-        <FontAwesome name="chevron-right" size={20} color="gray" />
-      </TouchableOpacity>
 
-            {/* More Info & Support */}
-            <Text className="text-gray-700 font-semibold mb-2">More info and support</Text>
-      <TouchableOpacity className="bg-white p-4 rounded-xl flex-row justify-between mb-2">
-        <Text className="text-lg">Help</Text>
-        <FontAwesome name="chevron-right" size={20} color="gray" />
-      </TouchableOpacity>
-      <TouchableOpacity className="bg-white p-4 rounded-xl flex-row justify-between mb-2">
-        <Text className="text-lg">Terms & Services</Text>
-        <FontAwesome name="chevron-right" size={20} color="gray" />
-      </TouchableOpacity>
-      <TouchableOpacity className="bg-white p-4 rounded-xl flex-row justify-between mb-4">
-        <Text className="text-lg">User Guide</Text>
-        <FontAwesome name="chevron-right" size={20} color="gray" />
-      </TouchableOpacity>
+      {/* Account Details Button */}
+      <TabButton 
+        title="Account Details"
+        handlePress={() => navigateTo(routes.accountDetail)}
+        containerStyles="flex-row justify-between mb-4"
+        textStyles="text-lg"
+        isLoading={isSubmitting}
+        icon={<FontAwesome name="chevron-right" size={20} color="gray" />}
+      />
 
-      {/* Logout Button */}
+      {/* Edit Profile Button */}
+      <TabButton 
+        title="Edit Profile"
+        handlePress={() => navigateTo(routes.editProfile)}
+        containerStyles="flex-row justify-between mb-4"
+        textStyles="text-lg"
+        isLoading={isSubmitting}
+        icon={<FontAwesome name="chevron-right" size={20} color="gray" />}
+      />
+
+      {/* Change Sign Language Button */}
+      <TabButton 
+        title="Change Sign Language"
+        handlePress={() => navigateTo(routes.changeLanguage)}
+        containerStyles="flex-row justify-between mb-4"
+        textStyles="text-lg"
+        isLoading={isSubmitting}
+        icon={<FontAwesome name="chevron-right" size={20} color="gray" />}
+      />
+
+      {/* More Info & Support */}
+      <Text className="text-gray-700 font-semibold mb-2">More info and support</Text>
+
+      {/* Help Button */}
+      <TabButton 
+        title="Help"
+        handlePress={() => navigateTo(routes.help)}
+        containerStyles="flex-row justify-between mb-4"
+        textStyles="text-lg"
+        isLoading={isSubmitting}
+        icon={<FontAwesome name="chevron-right" size={20} color="gray" />}
+      />
+
+      {/* Terms & Services Button */}
+      <TabButton 
+        title="Terms & Services"
+        handlePress={() => navigateTo(routes.test)}
+        containerStyles="flex-row justify-between mb-4"
+        textStyles="text-lg"
+        isLoading={isSubmitting}
+        icon={<FontAwesome name="chevron-right" size={20} color="gray" />}
+      />
+      
+      {/* User Guide Button */}
+      <TabButton 
+        title="User Guide"
+        handlePress={() => navigateTo(routes.test)}
+        containerStyles="flex-row justify-between mb-4"
+        textStyles="text-lg"
+        isLoading={isSubmitting}
+        icon={<FontAwesome name="chevron-right" size={20} color="gray" />}
+      />
+
+      {/* Logout */} 
       <Text className="text-gray-700 font-semibold mb-2">Login</Text>
-      <TouchableOpacity className="bg-white p-4 rounded-xl items-center">
-        <Text className="text-red-500 text-lg font-bold">Logout</Text>
-      </TouchableOpacity>
+
+      {/* Logout Button */} 
+      <TabButton 
+        title="Logout"
+        handlePress={() => navigateTo('sign-in')}
+        containerStyles="w-full items-center"
+        textStyles="text-red-500 text-lg font-bold"
+        isLoading={isSubmitting}
+      />
+
     </SafeAreaView>
   )
 }

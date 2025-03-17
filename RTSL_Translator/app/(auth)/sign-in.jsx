@@ -20,7 +20,7 @@ const SignIn = () => {
     setTimeout(() => {
       setIsSubmitting(false);
       router.push({ pathname: '/welcome', params: { username: form.email.split('@')[0] } }); // Extract username from email
-    }, 1000);
+    }, 500);
   };
 
   return (

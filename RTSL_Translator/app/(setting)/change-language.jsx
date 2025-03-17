@@ -1,12 +1,12 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const EditProfile = () => {
+const ChangeLanguage = () => {
   return (
     <View>
-      <Text>EditProfile</Text>
+      <Text>ChangeLanguage</Text>
     </View>
   )
 }
 
-export default EditProfile
+export default ChangeLanguage

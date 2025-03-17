@@ -24,7 +24,7 @@ const SignUp = () => {
 
       // Navigate to the login page
       router.push('/sign-in');
-    }, 2000);
+    }, 500);
   };
 
   return (
