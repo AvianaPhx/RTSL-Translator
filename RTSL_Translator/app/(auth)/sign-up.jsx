@@ -40,7 +40,7 @@ const SignUp = () => {
       console.log('User signed up:', user);
   
       // Navigate to the login page after successful sign-up
-      router.push('/sign-in');
+      router.replace('/sign-in');
     } catch (error) {
       setIsSubmitting(false);
   
@@ -119,7 +119,11 @@ const SignUp = () => {
           <Text className='text-center text-xl text-gray-500 mr-2 my-4'>
             Already have an account?
           </Text>
-          <Link href='/sign-in' className='font-psemibold text-xl text-purple-600 my-4'>Sign In</Link>
+          <Pressable onPress={() => router.replace('/sign-in')}>
+            <Text className='font-psemibold text-xl text-purple-600 my-4'>
+              Sign In
+            </Text>
+          </Pressable>
         </View>
       </View>
     </SafeAreaView>

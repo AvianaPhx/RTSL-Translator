@@ -19,7 +19,7 @@ const App = () => {
           <View>
             <CustomButton 
               title="Get Started  &gt;"
-              handlePress={() => router.push('/sign-up')}
+              handlePress={() => router.replace('/sign-up')}
               containerStyles="w-full mt-3"
             />
             {/* Gradient Button */}
@@ -35,7 +35,7 @@ const App = () => {
             <View className="flex-row mt-6">
               <Text className="text-[#7A7A7A] text-2xl">You already have an account?</Text>
               
-              <Pressable onPress={() => router.push("/sign-in")}>
+              <Pressable onPress={() => router.replace("/sign-in")}>
                 <Text className="text-[#8461DB] text-2xl font-bold ml-2">Login</Text>
               </Pressable>
 

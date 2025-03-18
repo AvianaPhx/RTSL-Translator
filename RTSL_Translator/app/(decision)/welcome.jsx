@@ -30,7 +30,7 @@ const Welcome = ({ route }) => {
    // Function to handle language selection
    const handleLanguageSelect = (language) => {
     console.log(`Selected: ${language}`);
-    router.push('/home'); // Redirect to Home screen
+    router.replace('/home'); // Redirect to Home screen
   };
 
   return (

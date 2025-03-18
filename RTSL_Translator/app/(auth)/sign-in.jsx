@@ -1,9 +1,11 @@
-import { View, Text, TextInput, Pressable, Image } from 'react-native';
+import { View, Text, Pressable, Image, Alert } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FormField from '@/components/FormField';
 import CustomButton from '@/components/CustomButton';
 import { router, Link } from 'expo-router';
+import { signInWithEmailAndPassword } from 'firebase/auth'; // Import Firebase auth function
+import { auth } from '../../config/firebase'; // Import auth from your Firebase config
 
 const SignIn = () => {
   const [form, setForm] = useState({
@@ -13,14 +15,47 @@ const SignIn = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const submit = () => {
+  const submit = async () => {
     setIsSubmitting(true);
 
-    // Simulate authentication (replace with actual API call)
-    setTimeout(() => {
+    const { email, password } = form;
+
+    // Simple validation for empty fields
+    if (!email || !password) {
+      Alert.alert('Missing Fields', 'Please fill in all fields');
       setIsSubmitting(false);
-      router.push({ pathname: '/welcome', params: { username: form.email.split('@')[0] } }); // Extract username from email
-    }, 500);
+      return;
+    }
+
+    try {
+      // Authenticate the user using Firebase Authentication
+      await signInWithEmailAndPassword(auth, email, password);
+      
+      // Redirect to the welcome screen after successful login
+      router.replace({ pathname: '/welcome', params: { username: email.split('@')[0] } });
+
+    } catch (error) {
+      setIsSubmitting(false);
+      
+      console.error('Sign-in error:', error); // Log the complete error for debugging
+
+      // Handle Firebase errors
+      let errorMessage = 'An error occurred, please try again later.';
+      if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect password. Please try again.';
+      } else if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No user found with this email address.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many attempts. Please try again later.';
+      } else {
+        errorMessage = error.message || errorMessage;
+      }
+
+      // Show error message
+      Alert.alert('Sign-In Error', errorMessage);
+    }
   };
 
   return (
