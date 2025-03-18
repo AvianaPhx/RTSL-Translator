@@ -10,16 +10,16 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.galaxies.RTSL",
-      "googleServicesFile": "./GoogleService-Info.plist"
+      "bundleIdentifier": "com.galaxies.RTSL"
+
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/avatar-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.galaxies.RTSL",
-      "googleServicesFile": "./google-services.json"
+      "package": "com.galaxies.RTSL"
+
     },
     "web": {
       "bundler": "metro",

@@ -1,11 +1,17 @@
-import { View, Text, TextInput, Pressable, Image } from 'react-native';
+import { View, Text, TextInput, Pressable, Image, Alert} from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FormField from '@/components/FormField';
 import CustomButton from '@/components/CustomButton';
 import { router, Link } from 'expo-router';
+import { createUserWithEmailAndPassword } from 'firebase/auth';  // Correct import for Firebase functions
+import { auth, firestore } from '../../config/firebase';
+
 
 const SignUp = () => {
+
+
+
   const [form, setForm] = useState({
     username: '',
     email: '',
@@ -14,18 +20,52 @@ const SignUp = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const submit = () => {
+
+  const submit = async () => {
     setIsSubmitting(true);
-
-    // Simulate a sign-up process (replace with actual API call)
-    setTimeout(() => {
+  
+    const { email, password, username } = form;
+  
+    if (!username || !email || !password) {
+      Alert.alert('Missing Fields', 'Please fill in all fields');
       setIsSubmitting(false);
-      console.log('User signed up:', form);
-
-      // Navigate to the login page
+      return;
+    }
+  
+    try {
+      // Create the user with Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+  
+      console.log('User signed up:', user);
+  
+      // Navigate to the login page after successful sign-up
       router.push('/sign-in');
-    }, 500);
+    } catch (error) {
+      setIsSubmitting(false);
+  
+      console.error('Sign-up error:', error); // Log the complete error for debugging
+  
+      // Handle Firebase errors
+      let errorMessage = 'An error occurred, please try again later.';
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'This email is already in use.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password should be at least 6 characters.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many attempts. Please try again later.';
+      } else {
+        errorMessage = error.message || errorMessage; // Fallback to detailed error message
+      }
+  
+      // Show error message
+      Alert.alert('Sign-Up Error', errorMessage);
+
+    }
   };
+  
 
   return (
     <SafeAreaView className='bg-white h-full p-5'>
