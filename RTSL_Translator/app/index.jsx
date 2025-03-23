@@ -22,16 +22,6 @@ const App = () => {
               handlePress={() => router.replace('/sign-up')}
               containerStyles="w-full mt-3"
             />
-            {/* Gradient Button */}
-            {/* <Link href="/sign-up" asChild>
-              <Pressable className="mt-3 h-16 rounded-lg justify-center bg-black bg-opacity-75 p-2" colors={["#A076F9", "#8461DB"]}>
-
-                  <Text className="text-white text-3xl font-bold text-center">Get Started &gt;</Text>
-
-              </Pressable>
-            </Link> */}
-
-            {/* Login Text */}
             <View className="flex-row mt-6">
               <Text className="text-[#7A7A7A] text-2xl">You already have an account?</Text>
               

@@ -4,14 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FormField from '@/components/FormField';
 import CustomButton from '@/components/CustomButton';
 import { router, Link } from 'expo-router';
-import { createUserWithEmailAndPassword } from 'firebase/auth';  // Correct import for Firebase functions
-import { auth, firestore } from '../../config/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth, firestore } from '@/config/firebase';
 
 
 const SignUp = () => {
-
-
-
+  
   const [form, setForm] = useState({
     username: '',
     email: '',
@@ -19,11 +17,16 @@ const SignUp = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
 
   const submit = async () => {
+
+    if (!agreeToTerms) {
+      Alert.alert('Terms & Conditions', 'You must agree to the terms and conditions to continue.');
+      return;
+    }
+
     setIsSubmitting(true);
-  
     const { email, password, username } = form;
   
     if (!username || !email || !password) {
@@ -35,8 +38,6 @@ const SignUp = () => {
     try {
       // Create the user with Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-  
       console.log('User signed up:', user);
   
       // Navigate to the login page after successful sign-up
@@ -93,11 +94,15 @@ const SignUp = () => {
           secureTextEntry
         />
 
+
         <View className='flex-row items-center my-6'>
-          <Pressable className='w-5 h-5 bg-purple-200 rounded-full mr-2' />
+
+          <Pressable onPress={() => setAgreeToTerms(!agreeToTerms)} className={`w-5 h-5 rounded-full mr-2 ${agreeToTerms ? 'bg-purple-600' : 'bg-purple-200'}`} />
+
           <Text className='text-gray-600 text-xl'>
             I agree to the <Text className='text-purple-600 font-psemibold'>terms & conditions</Text>
           </Text>
+
         </View>
 
         <CustomButton 

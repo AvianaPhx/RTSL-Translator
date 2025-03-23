@@ -10,8 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.galaxies.RTSL"
-
+      "bundleIdentifier": "com.galaxies.RTSL",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +21,6 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.galaxies.RTSL"
-
     },
     "web": {
       "bundler": "metro",
@@ -33,11 +34,14 @@
     },
     "plugins": [
       "expo-router",
-      ["expo-build-properties", {
-        "ios": {
-          "useFrameworks": "static"
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
         }
-      }],
+      ],
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       [
@@ -49,10 +53,17 @@
           "backgroundColor": "#ffffff"
         }
       ]
-
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "2118362e-4287-4ca6-90f8-2006da744fc1"
+      }
     }
   }
 }
