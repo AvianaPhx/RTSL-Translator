@@ -36,7 +36,7 @@ const SignIn = () => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.replace({ pathname: '/welcome', params: { username: email.split('@')[0] } });
+      router.replace({ pathname: '/welcome' });
     } catch (error) {
       setIsSubmitting(false);
       

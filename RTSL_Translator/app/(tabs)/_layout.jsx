@@ -39,6 +39,7 @@ const TabsLayout = () => {
                 options={{
                     title: 'Home',
                     headerShown: false,
+                    tabBarStyle: { display: 'none' },
                     tabBarIcon: ({ color, focused }) => (
                         <TabIcon 
                             icon={icons.home}
@@ -54,6 +55,7 @@ const TabsLayout = () => {
                 options={{
                     title: 'Translator',
                     headerShown: false,
+                    tabBarStyle: { display: 'none' },
                     tabBarIcon: ({ color, focused }) => (
                         <TabIcon 
                             icon={icons.home}
@@ -69,6 +71,7 @@ const TabsLayout = () => {
                 options={{
                     title: 'Connect',
                     headerShown: false,
+                    tabBarStyle: { display: 'none' },
                     tabBarIcon: ({ color, focused }) => (
                         <TabIcon 
                             icon={icons.home}
@@ -84,6 +87,7 @@ const TabsLayout = () => {
                 options={{
                     title: 'Setting',
                     headerShown: false,
+                    tabBarStyle: { display: 'none' },
                     tabBarIcon: ({ color, focused }) => (
                         <TabIcon 
                             icon={icons.home}

@@ -45,17 +45,15 @@ const SignUp = () => {
     } catch (error) {
       setIsSubmitting(false);
   
-      console.error('Sign-up error:', error); // Log the complete error for debugging
-  
       // Handle Firebase errors
       let errorMessage = 'An error occurred, please try again later.';
-      if (error.code === 'auth/email-already-in-use') {
+      if (error.code === 'email-already-in-use') {
         errorMessage = 'This email is already in use.';
-      } else if (error.code === 'auth/weak-password') {
+      } else if (error.code === 'weak-password') {
         errorMessage = 'Password should be at least 6 characters.';
-      } else if (error.code === 'auth/invalid-email') {
+      } else if (error.code === 'invalid-email') {
         errorMessage = 'Invalid email address.';
-      } else if (error.code === 'auth/too-many-requests') {
+      } else if (error.code === 'too-many-requests') {
         errorMessage = 'Too many attempts. Please try again later.';
       } else {
         errorMessage = error.message || errorMessage; // Fallback to detailed error message
@@ -69,70 +67,72 @@ const SignUp = () => {
   
 
   return (
-    <SafeAreaView className='bg-white h-full p-5'>
-      <View className='w-full justify-center'>
-        <Text className="text-5xl font-bold text-purple-900">Create an account</Text>
-
-        <FormField 
-          title="Username"
-          value={form.username}
-          handleChangeText={(e) => setForm({ ...form, username: e })}
-          otherStyles="mt-7"
-        />
-        <FormField 
-          title="Email"
-          value={form.email}
-          handleChangeText={(e) => setForm({ ...form, email: e })}
-          otherStyles="mt-7"
-          keyboardType="email-address"
-        />
-        <FormField 
-          title="Password"
-          value={form.password}
-          handleChangeText={(e) => setForm({ ...form, password: e })}
-          otherStyles="mt-7"
-          secureTextEntry
-        />
-
-
-        <View className='flex-row items-center my-6'>
-
-          <Pressable onPress={() => setAgreeToTerms(!agreeToTerms)} className={`w-5 h-5 rounded-full mr-2 ${agreeToTerms ? 'bg-purple-600' : 'bg-purple-200'}`} />
-
-          <Text className='text-gray-600 text-xl'>
-            I agree to the <Text className='text-purple-600 font-psemibold'>terms & conditions</Text>
-          </Text>
-
-        </View>
-
-        <CustomButton 
-          title="Sign Up &gt;"
-          handlePress={submit}
-          containerStyles="w-full"
-          isLoading={isSubmitting}
-        />
-
-        <Text className='text-center text-xl text-gray-500 my-4'>or sign up with</Text>
-
-        <View className='flex-row justify-center'>
-          <Image source={require('../../assets/icons/bookmark.png')} style={{ width: 40, height: 40, marginHorizontal: 30 }} />
-          <Image source={require('../../assets/icons/bookmark.png')} style={{ width: 40, height: 40, marginHorizontal: 30 }} />
-          <Image source={require('../../assets/icons/bookmark.png')} style={{ width: 40, height: 40, marginHorizontal: 30 }} />
-        </View>
-
-        <View className='justify-center pt-5 flex-row gap-2'>
-          <Text className='text-center text-xl text-gray-500 mr-2 my-4'>
-            Already have an account?
-          </Text>
-          <Pressable onPress={() => router.replace('/sign-in')}>
-            <Text className='font-psemibold text-xl text-purple-600 my-4'>
-              Sign In
+    <SafeAreaView className="bg-white flex-1">
+      <View className="flex-1 justify-center items-center px-5">
+        <View className="w-full max-w-md">
+          <Text className="text-5xl font-bold text-purple-900 text-center">Create an account</Text>
+  
+          <FormField 
+            title="Username"
+            value={form.username}
+            handleChangeText={(e) => setForm({ ...form, username: e })}
+            otherStyles="mt-7"
+          />
+          <FormField 
+            title="Email"
+            value={form.email}
+            handleChangeText={(e) => setForm({ ...form, email: e })}
+            otherStyles="mt-5"
+            keyboardType="email-address"
+          />
+          <FormField 
+            title="Password"
+            value={form.password}
+            handleChangeText={(e) => setForm({ ...form, password: e })}
+            otherStyles="mt-5"
+            secureTextEntry
+          />
+  
+          {/* Terms & Conditions */}
+          <View className="flex-row items-center my-6">
+            <Pressable 
+              onPress={() => setAgreeToTerms(!agreeToTerms)} 
+              className={`w-5 h-5 rounded-full mr-2 ${agreeToTerms ? 'bg-purple-600' : 'bg-purple-200'}`} 
+            />
+            <Text className="text-gray-600 text-xl">
+              I agree to the <Text className="text-purple-600 font-semibold text-xl">terms & conditions</Text>
             </Text>
-          </Pressable>
+          </View>
+  
+          {/* Sign Up Button */}
+          <CustomButton 
+            title="Sign Up &gt;"
+            handlePress={submit}
+            containerStyles="w-full mt-3"
+            isLoading={isSubmitting}
+          />
+  
+          <Text className="text-center text-gray-500 my-5 text-xl">or sign up with</Text>
+  
+          {/* Social Sign-In Buttons */}
+          <View className="flex-row justify-center gap-5">
+            <Image source={require('../../assets/icons/bookmark.png')} style={{ width: 40, height: 40 }} />
+            <Image source={require('../../assets/icons/bookmark.png')} style={{ width: 40, height: 40 }} />
+            <Image source={require('../../assets/icons/bookmark.png')} style={{ width: 40, height: 40 }} />
+          </View>
+  
+          {/* Sign In Link */}
+          <View className="flex-row justify-center pt-5">
+            <Text className="text-gray-500 text-xl">Already have an account?</Text>
+            <Pressable onPress={() => router.replace('/sign-in')}>
+              <Text className="text-purple-600 font-semibold text-xl ml-1">Sign In</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     </SafeAreaView>
   );
+  
 };
 
 export default SignUp;
