@@ -277,7 +277,7 @@ def pre_process_point_history(image, point_history):
 
     return temp_point_history
 
-
+# WORK ON THIS
 def logging_csv(number, mode, landmark_list, point_history_list):
     if mode == 0:
         pass
