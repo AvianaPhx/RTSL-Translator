@@ -40,13 +40,45 @@ const Home = () => {
 
   return (
 
-    <SafeAreaView className='m-4'>
+    <SafeAreaView className='bg-gray-900 flex-1'>
 
       {/* Header */}
-      <View className='mt-3'>
-        <Text className="font-bold text-5xl text-purple-900">Hello, {userData?.username || 'User'}</Text>
-        <Text className="text-gray-700 text-xl">Welcome to RTSL-Translator</Text>
+      <View className='mx-3 ml-3'>
+        <Text className="font-bold text-4xl text-purple-400">Hello, {userData?.username || 'User'}</Text>
+        <Text className="text-gray-400 text-xl">Welcome to RTSL-Translator</Text>
       </View>
+      
+      <View className='m-4'>
+        {/* Buttons */}
+        <TouchableOpacity className="flex-row items-center bg-gray-400 p-4 rounded-lg mb-3 shadow-md" onPress={() => router.push('')}>
+          <FontAwesome name="user-plus" size={24} color="black" />
+          <Text className="ml-3 text-lg">Connect with a Friend!</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity className="flex-row items-center bg-gray-400 p-4 rounded-lg mb-3 shadow-md" onPress={() => router.push('')}>
+          <MaterialIcons name="bar-chart" size={24} color="black" />
+          <Text className="ml-3 text-lg">Show Your Stats</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View className='m-4'>
+        {/* Info Sections */}
+        <View className="bg-gray-400 p-4 rounded-lg mb-3 shadow-md">
+          <Text className="text-lg font-bold">RTSL-Translator</Text>
+          <Text className="text-sm text-gray-600 mt-1">
+            Break communication barriers with our app! Using advanced AI and computer vision, the app translates sign language into text and speech in real time.
+          </Text>
+        </View>
+
+        <View className="bg-gray-400 p-4 rounded-lg mb-3 shadow-md">
+          <Text className="text-lg font-bold">Check Your Stats</Text>
+          <Text className="text-sm text-gray-600 mt-1">
+            Track your sign language progress with detailed insights on your most-used signs, strengths, and areas for improvement.
+          </Text>
+        </View>
+      </View>
+
+
 
     {/* Tab Bar */}
     <TabBar />
