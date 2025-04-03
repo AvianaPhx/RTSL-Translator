@@ -7,7 +7,7 @@ const TabButton = ({ title, handlePress, isLoading, containerStyles, textStyles,
     <TouchableOpacity
         onPress={handlePress}
         disabled={isLoading}
-        className={`bg-white p-4 rounded-xl ${containerStyles}`}
+        className={`bg-gray-800 p-4 rounded-xl ${containerStyles}`}
     >
         <Text className={`${textStyles}`}>{title}</Text>
         {icon}

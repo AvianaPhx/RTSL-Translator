@@ -44,20 +44,13 @@ const Translator = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white', padding: 16 }}>
+    <SafeAreaView className="bg-gray-900" style={{ flex: 1, padding: 16 }}>
       <TouchableOpacity onPress={() => router.back()}>
         <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#6B46C1' }}>&lt; RTSL-Translator</Text>
       </TouchableOpacity>
 
       <View style={{ marginTop: 16, borderWidth: 1, borderRadius: 8, overflow: 'hidden', height: 250, backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
-
-        {/* {hasPermission === null ? (
-          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#6B46C1' }}>Requesting Camera Permission...</Text>
-        ) : hasPermission === false ? (
-          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#6B46C1' }}>Camera permission denied</Text>
-        ) : (
-          <Camera ref={cameraRef} style={{ flex: 1, width: '100%' }} />
-        )} */}
+        <Text>CAMERA I NEED TO IMPLEMENT</Text>
       </View>
 
       <FlatList
@@ -88,7 +81,9 @@ const Translator = () => {
         </View>
       </KeyboardAvoidingView>
 
-      <TabBar />
+      <View className="bottom-0 left-0 right-0">
+        <TabBar />
+      </View>
     </SafeAreaView>
   );
 };

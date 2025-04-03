@@ -8,18 +8,18 @@ const TabBar = () => {
     const router = useRouter();
 
     return (
-        <View className="flex-row justify-around items-center bg-white p-4 rounded-2xl mt-auto shadow-md">
-            <TouchableOpacity onPress={() => router.push('/home')}>
-                <FontAwesome name="home" size={24} color="black" />
+        <View className="flex-row justify-around items-center bg-gray-800 p-4 rounded-2xl mt-auto shadow-md">
+            <TouchableOpacity onPress={() => router.navigate('/home')}>
+                <FontAwesome name="home" size={34} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/translator')}>
-                <FontAwesome name="language" size={24} color="black" />
+            <TouchableOpacity onPress={() => router.navigate('/translator')}>
+                <FontAwesome name="language" size={34} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/connect')}>
-                <FontAwesome name="comment" size={24} color="black" />
+            <TouchableOpacity onPress={() => router.navigate('/connect')}>
+                <FontAwesome name="comment" size={34} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/setting')}>
-                <FontAwesome name="cog" size={24} color="black" />
+            <TouchableOpacity onPress={() => router.navigate('/setting')}>
+                <FontAwesome name="cog" size={34} color="white" />
             </TouchableOpacity>
         </View>
     )

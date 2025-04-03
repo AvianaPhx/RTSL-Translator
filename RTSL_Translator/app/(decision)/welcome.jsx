@@ -54,7 +54,7 @@ const Welcome = ({ route }) => {
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 justify-center items-center bg-white px-5">
+    <SafeAreaView className="flex-1 justify-center items-center bg-gray-900 px-5">
       {/* Fading and growing animation for text */}
       <Animated.View
         style={{ 
@@ -63,8 +63,8 @@ const Welcome = ({ route }) => {
         }}
         className="items-center justify-center"
       >
-        <Text className="text-6xl font-bold text-purple-900 text-center">Hello, {userData?.username || 'User'}</Text>
-        <Text className="text-2xl text-gray-700 text-center">Welcome to RTSL-Translator</Text>
+        <Text className="text-6xl font-bold text-purple-400 text-center">Hello, {userData?.username || 'User'}</Text>
+        <Text className="text-2xl text-gray-400 text-center">Welcome to RTSL-Translator</Text>
       </Animated.View>
     </SafeAreaView>
   );
