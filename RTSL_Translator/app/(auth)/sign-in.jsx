@@ -1,11 +1,11 @@
-import { View, Text, Pressable, Image, Alert, Dimensions } from 'react-native';
+import { View, Text, Pressable, Image, Alert, ScrollView, KeyboardAvoidingView, Platform  } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FormField from '@/components/FormField';
 import CustomButton from '@/components/CustomButton';
 import { router, Link } from 'expo-router';
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth'; // Import Firebase functions
-import { auth } from '@/config/firebase'; // Import Firebase config
+import { auth, db } from '@/config/firebase';
 
 const SignIn = () => {
 
@@ -68,63 +68,73 @@ const SignIn = () => {
   };
 
   return (
-    <SafeAreaView className="bg-white flex-1">
-      <View className="flex-1 justify-center items-center p-5 w-full">
+    <KeyboardAvoidingView 
+    behavior={Platform.OS === "ios" ? "padding" : "height"} 
+    style={{ flex: 1 }}
+    >
+      <SafeAreaView className="bg-gray-900 flex-1">
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="bg-gray-900">
 
-        <Text className="text-5xl font-bold text-purple-900">Sign In</Text>
+          <View className="flex-1 justify-center items-center px-5">
+            <View className="w-full max-w-md">
+              <Text className="text-6xl font-bold text-purple-400 text-center">Sign In</Text>
 
-        <View className="w-full max-w-md">
-          <FormField
-            title="Email"
-            value={form.email}
-            handleChangeText={(e) => setForm({ ...form, email: e })}
-            otherStyles="mt-7"
-            keyboardType="email-address"
-          />
-          <FormField
-            title="Password"
-            value={form.password}
-            handleChangeText={(e) => setForm({ ...form, password: e })}
-            otherStyles="mt-7"
-            secureTextEntry
-          />
-
-          <View className="flex-row my-6">
-            <Pressable onPress={handleForgotPassword}>
-              <Text className="text-purple-600 font-psemibold">Forgot Password?</Text>
-            </Pressable>
-          </View>
-
-          <CustomButton
-            title="Sign In >"
-            handlePress={submit}
-            containerStyles="w-full"
-            isLoading={isSubmitting}
-          />
-
-          <Text className="text-center text-xl text-gray-500 my-4">or sign in with</Text>
-
-          <View className="flex-row justify-center">
-            {[...Array(3)].map((_, index) => (
-              <Image
-                key={index}
-                source={require('../../assets/icons/bookmark.png')}
-                style={{ width: 40, height: 40, marginHorizontal: 15 }}
+              <FormField
+                title="Email"
+                value={form.email}
+                placeholder={"Enter Your Email Address"}
+                handleChangeText={(e) => setForm({ ...form, email: e })}
+                otherStyles="mt-7"
+                keyboardType="email-address"
               />
-            ))}
+              <FormField
+                title="Password"
+                value={form.password}
+                placeholder={"Enter Your Password"}
+                handleChangeText={(e) => setForm({ ...form, password: e })}
+                otherStyles="mt-7"
+                secureTextEntry
+              />
+
+              <View className="flex-row my-6">
+                <Pressable onPress={handleForgotPassword}>
+                  <Text className="text-purple-400 font-psemibold text-lg">Forgot Password?</Text>
+                </Pressable>
+              </View>
+
+              <CustomButton
+                title="Sign In >"
+                handlePress={submit}
+                containerStyles="w-full"
+                isLoading={isSubmitting}
+              />
+
+              <Text className="text-center text-xl text-gray-400 mt-6 mb-4">or sign in with</Text>
+
+              <View className="flex-row justify-center">
+                {[...Array(3)].map((_, index) => (
+                  <Image
+                    key={index}
+                    source={require('../../assets/icons/bookmark.png')}
+                    style={{ width: 40, height: 40, marginHorizontal: 15 }}
+                  />
+                ))}
+              </View>
+
+              <View className="flex-row justify-center pt-5">
+                <Text className="text-center text-xl text-gray-400">Don't have an account?</Text>
+                <Link href="/sign-up" className="font-psemibold text-xl text-purple-400 ml-2">
+                  Sign Up
+                </Link>
+              </View>
+
+            </View>
           </View>
 
-          <View className="flex-row justify-center pt-5">
-            <Text className="text-center text-xl text-gray-500">Don't have an account?</Text>
-            <Link href="/sign-up" className="font-psemibold text-xl text-purple-600 ml-2">
-              Sign Up
-            </Link>
-          </View>
-
-        </View>
-      </View>
-    </SafeAreaView>
-);
+        </ScrollView>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
+  );
 };
 
 export default SignIn;

@@ -18,7 +18,7 @@ const TabBar = () => {
             <TouchableOpacity onPress={() => router.push('/connect')}>
                 <FontAwesome name="comment" size={24} color="black" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.replace('/setting')}>
+            <TouchableOpacity onPress={() => router.push('/setting')}>
                 <FontAwesome name="cog" size={24} color="black" />
             </TouchableOpacity>
         </View>

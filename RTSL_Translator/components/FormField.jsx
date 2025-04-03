@@ -8,11 +8,11 @@ const FormField = ({ title, value, placeholder, handleChangeText, otherStyles, .
 const [showPassword, setshowPassword] = useState(false)  
   return (
     <View className={`space-y-2 ${otherStyles}`}>
-      <Text className='text-black font-pmedium text-xl'>{title}</Text>
+      <Text className='text-white font-pmedium text-xl'>{title}</Text>
 
       <View className='border-b border-gray-300 flex-row items-center py-2 mb-2'>
         <TextInput 
-          className='flex-1 font-psemibold text-xl'
+          className='flex-1 font-psemibold text-xl text-white'
           value={value}
           placeholder={placeholder}
           placeholderTextColor='#7b7b8b'

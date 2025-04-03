@@ -1,7 +1,9 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail, initializeAuth, getReactNativePersistence } from "firebase/auth";
+import { getAuth, initializeAuth, setPersistence, browserLocalPersistence} from "firebase/auth";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFirestore } from "firebase/firestore";
+import { getReactNativePersistence } from "firebase/auth";
+import { Platform } from "react-native";
 
 // Your Firebase config object
 const firebaseConfig = {
@@ -18,10 +20,17 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase Auth with persistence
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
+// Initialize Firebase Auth with persistence depending on the platform
+let auth;
+
+if (Platform.OS !== "web") {
+  // For React Native (Expo), use AsyncStorage for persistence
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage)
+  });
+} else {
+  auth = getAuth(app);  // For web, use the default persistence
+}
 
 const db = getFirestore(app);
 
