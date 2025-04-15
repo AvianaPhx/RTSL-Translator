@@ -123,7 +123,7 @@ const SignIn = () => {
 
               <View className="flex-row justify-center pt-5">
                 <Text className="text-center text-xl text-gray-400">Don't have an account?</Text>
-                <Link href="/sign-up" className="font-psemibold text-xl text-purple-400 ml-2">
+                <Link href="/home" className="font-psemibold text-xl text-purple-400 ml-2">
                   Sign Up
                 </Link>
               </View>

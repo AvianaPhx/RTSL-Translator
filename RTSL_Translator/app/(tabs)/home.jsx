@@ -41,7 +41,7 @@ const Home = () => {
     <SafeAreaView className="bg-gray-900 flex-1">
 
       {/* Header */}
-      <View className="mx-4 mt-6">
+      <View className="mx-4 mt-6 mb-6">
         <Text className="font-bold text-4xl md:text-4xl text-purple-400">
           Hello, {userData?.username || 'User'}
         </Text>
@@ -52,10 +52,10 @@ const Home = () => {
 
       <View className="flex-1 px-4">
         {/* Scrollable Content */}
-        <ScrollView className="mt-" contentContainerStyle={{ flexGrow: 1, paddingBottom: 80 }}>
+        <ScrollView  contentContainerStyle={{ flexGrow: 1, }}>
 
           {/* Buttons */}
-          <View className="gap-4 mt-9">
+          <View className="gap-4 mt-2 ">
             <TouchableOpacity 
               className="flex-row items-center bg-gray-800 p-6 rounded-lg shadow-md w-full"
               onPress={() => router.push('/connect')}
