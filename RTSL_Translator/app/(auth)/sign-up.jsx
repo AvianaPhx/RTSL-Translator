@@ -42,6 +42,9 @@ const SignUp = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
+      // Debug: Log user data before saving to db
+      console.log('User created:', user.uid);
+
       // Store user data in db
       await setDoc(doc(db, 'users', user.uid), {
         username,

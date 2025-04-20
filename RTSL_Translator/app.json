@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.galaxies.RTSL",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "We need camera access to take photos."
       }
     },
     "android": {
