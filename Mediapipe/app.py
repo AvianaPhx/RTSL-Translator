@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import csv
+import requests
+from datetime import datetime
 import copy
 import argparse
 import itertools
@@ -13,7 +15,87 @@ import mediapipe as mp
 
 from utils import CvFpsCalc
 from model import KeyPointClassifier
-from model import PointHistoryClassifier
+
+
+# ─── FIREBASE REST CONFIG ───────────────────────────────────────────────────────
+API_KEY    = "AIzaSyBoTMSMiqmqhDbydLbM2JPrgvhYSlGEzFU"   
+PROJECT_ID = "rtsl-translator"            
+# ────────────────────────────────────────────────────────────────────────────────
+
+def firebase_sign_in(email, password):
+    url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={API_KEY}"
+    r = requests.post(url, json={
+        "email": email, "password": password, "returnSecureToken": True
+    })
+    r.raise_for_status()
+    data = r.json()
+    return data["idToken"], data["localId"]    # JWT token, then your UID
+
+def lookup_user_by_email(target_email):
+    url = f"https://identitytoolkit.googleapis.com/v1/accounts:lookup?key={API_KEY}"
+    r = requests.post(url, json={"email": [target_email]})
+    r.raise_for_status()
+    users = r.json().get("users", [])
+    if not users:
+        raise ValueError(f"No user found with email {target_email}")
+    return users[0]["localId"]
+
+def send_message(id_token, from_uid, to_uid, text):
+    chat_id = "_".join(sorted([from_uid, to_uid]))
+    url = (
+        f"https://firestore.googleapis.com/v1/projects/"
+        f"{PROJECT_ID}/databases/(default)/documents/"
+        f"chats/{chat_id}/messages"
+    )
+    headers = {"Authorization": f"Bearer {id_token}"}
+    body = {
+        "fields": {
+            "createdAt": {"timestampValue": datetime.utcnow().isoformat() + "Z"},
+            "senderId": {"stringValue": from_uid},  # Changed from 'sender' to 'senderId'
+            "text": {"stringValue": text},
+
+        }
+    }
+    r = requests.post(url, json=body, headers=headers)
+    r.raise_for_status()
+    return r.json()
+
+def fetch_friend_uids(id_token, my_uid):
+    """Returns a list of UIDs from your Firestore `friends/{my_uid}` doc."""
+    url = (
+      f"https://firestore.googleapis.com/v1/projects/"
+      f"{PROJECT_ID}/databases/(default)/documents/"
+      f"friends/{my_uid}"
+    )
+    headers = {"Authorization": f"Bearer {id_token}"}
+    r = requests.get(url, headers=headers)
+    if r.status_code == 404:
+        return []
+    r.raise_for_status()
+    doc = r.json()
+    vals = doc\
+      .get("fields", {})\
+      .get("friends", {})\
+      .get("arrayValue", {})\
+      .get("values", [])
+    return [v["stringValue"] for v in vals]
+
+def fetch_username(id_token, uid):
+    """Fetches the `username` field from Firestore `users/{uid}`."""
+    url = (
+      f"https://firestore.googleapis.com/v1/projects/"
+      f"{PROJECT_ID}/databases/(default)/documents/"
+      f"users/{uid}"
+    )
+    headers = {"Authorization": f"Bearer {id_token}"}
+    r = requests.get(url, headers=headers)
+    r.raise_for_status()
+    doc = r.json()
+    # fallback to UID if username missing
+    return doc.get("fields", {}) \
+              .get("username", {}) \
+              .get("stringValue", uid)
+
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -37,10 +119,49 @@ def get_args():
     return args
 
 def main():
-    
     global custom_label, saved_label_text, current_word
-    saved_label_text = ""  # To store the label text
-    current_word = ""  # To store the current word being formed
+    saved_label_text = ""
+    current_word = ""
+    
+    # ─── FIREBASE SIGN‑IN ────────────────────────────────────────────────────────
+    email = input("Firebase Email: ").strip()
+    password   = input("Firebase Password: ").strip()
+    id_token, my_uid = firebase_sign_in(email, password)
+    print("\n✅ Login successful!\n")
+
+    # ─── FETCH & DISPLAY FRIEND LIST ─────────────────────────────────────────────
+    friends = fetch_friend_uids(id_token, my_uid)
+    if not friends:
+        print("❗️ No friends found. Exiting.")
+        return
+
+    # build (uid, username) pairs
+    friend_profiles = []
+    for uid in friends:
+        username = fetch_username(id_token, uid)
+        friend_profiles.append((uid, username))
+
+    print("Your friends:")
+    for idx, (_, username) in enumerate(friend_profiles):
+        print(f"  [{idx}] {username}")
+
+    # ─── SELECT FRIEND BY INDEX ──────────────────────────────────────────────────
+    sel = None
+    while sel is None:
+        try:
+            choice = input("Select friend number to chat with: ").strip()
+            sel = int(choice)
+            if not (0 <= sel < len(friend_profiles)):
+                raise ValueError
+        except ValueError:
+            print("Invalid number; please enter one of:", 
+                  list(range(len(friend_profiles))))
+            sel = None
+
+    friend_uid, friend_username = friend_profiles[sel]
+    print(f"\n✅ Chat ready: you={my_uid} ↔ friend={friend_username} ({friend_uid})\n")
+    # ────────────────────────────────────────────────────────────────────────────
+
 
     # Argument parsing #################################################################
     args = get_args()
@@ -70,7 +191,6 @@ def main():
     )
 
     keypoint_classifier = KeyPointClassifier()
-    point_history_classifier = PointHistoryClassifier()
 
     # Read labels ###########################################################
     with open('model/keypoint_classifier/keypoint_classifier_label.csv',
@@ -79,20 +199,13 @@ def main():
         keypoint_classifier_labels = [
             row[0] for row in keypoint_classifier_labels
         ]
-    with open(
-            'model/point_history_classifier/point_history_classifier_label.csv',
-            encoding='utf-8-sig') as f:
-        point_history_classifier_labels = csv.reader(f)
-        point_history_classifier_labels = [
-            row[0] for row in point_history_classifier_labels
-        ]
 
     # FPS Measurement ########################################################
     cvFpsCalc = CvFpsCalc(buffer_len=10)
 
     # Coordinate history #################################################################
     history_length = 16
-    point_history = deque(maxlen=history_length)
+
 
     # Finger gesture history ################################################
     finger_gesture_history = deque(maxlen=history_length)
@@ -109,11 +222,30 @@ def main():
         if key == 27:  # ESC
             break
         
-        # Print current word on Enter
-        if key in (13, 10):  # 13 = CR, 10 = LF
+                # Send / print current word on Enter
+        if key in (13, 10):
             print(f'Current Word: {current_word}')
-            
+            try:
+                send_message(id_token, my_uid, friend_uid, current_word)
+                print("  → Sent to chat!")
+            except Exception as e:
+                print("  ! Send failed:", e)
+            # reset for next word
+            current_word = ""
+        
         number, mode = select_mode(key, mode)
+
+        # Handle logging when in mode 1 (Logging Key Point)
+        if mode == 1 and key == ord('p'):
+            if custom_label is not None and results.multi_hand_landmarks:
+                for hand_landmarks in results.multi_hand_landmarks:
+                    landmark_list = calc_landmark_list(debug_image, hand_landmarks)
+                    pre_processed_landmark_list = pre_process_landmark(landmark_list)
+                    logging_csv(custom_label, mode, pre_processed_landmark_list)
+                    print(f"✅ Logged data for label {custom_label}")
+            else:
+                print("⚠️ No hand detected or label not set. Ensure you pressed 'k' first and your hand is visible.")
+
 
         # Camera capture #####################################################
         ret, image = cap.read()
@@ -139,7 +271,6 @@ def main():
 
                 # Conversion to relative coordinates / normalized coordinates
                 pre_processed_landmark_list = pre_process_landmark(landmark_list)
-                pre_processed_point_history_list = pre_process_point_history(debug_image, point_history)
 
                 # Hand sign classification
                 hand_sign_id = keypoint_classifier(pre_processed_landmark_list)
@@ -160,9 +291,7 @@ def main():
 
                 # Finger gesture classification
                 finger_gesture_id = 0
-                point_history_len = len(pre_processed_point_history_list)
-                if point_history_len == (history_length * 2):
-                    finger_gesture_id = point_history_classifier(pre_processed_point_history_list)
+
 
                 # Calculates the gesture IDs in the latest detection
                 finger_gesture_history.append(finger_gesture_id)
@@ -175,12 +304,9 @@ def main():
                     brect,
                     handedness,
                     keypoint_classifier_labels[hand_sign_id],
-                    point_history_classifier_labels[most_common_fg_id[0][0]],
                 )
-        else:
-            point_history.append([0, 0])
 
-        debug_image = draw_point_history(debug_image, point_history)
+
         debug_image = draw_info(debug_image, fps, mode, number)
 
         # Draw the saved label text and current word on the screen
@@ -203,14 +329,12 @@ def select_mode(key, mode):
         custom_label_input = input("Enter a label number for keypoint logging (e.g., 11, 12, or 13): ")
         try:
             custom_label = int(custom_label_input)
-            print(f"label set to: {custom_label}")
+            print(f"Label set to: {custom_label}")
         except ValueError:
             print("Invalid label. Please enter a valid number.")
             custom_label = None
     elif key == ord('n'):
         mode = 0
-    elif key == ord('h'):
-        mode = 2
     return number, mode
 
 def calc_bounding_rect(image, landmarks):
@@ -271,42 +395,14 @@ def pre_process_landmark(landmark_list):
 
     return temp_landmark_list
 
-def pre_process_point_history(image, point_history):
-    image_width, image_height = image.shape[1], image.shape[0]
-
-    temp_point_history = copy.deepcopy(point_history)
-
-    # Convert to relative coordinates
-    base_x, base_y = 0, 0
-    for index, point in enumerate(temp_point_history):
-        if index == 0:
-            base_x, base_y = point[0], point[1]
-
-        temp_point_history[index][0] = (temp_point_history[index][0] -
-                                        base_x) / image_width
-        temp_point_history[index][1] = (temp_point_history[index][1] -
-                                        base_y) / image_height
-
-    # Convert to a one-dimensional list
-    temp_point_history = list(
-        itertools.chain.from_iterable(temp_point_history))
-
-    return temp_point_history
-
-def logging_csv(label, mode, landmark_list, point_history_list):
+def logging_csv(label, mode, landmark_list):
     if mode == 0:
         pass  # No logging in mode 0
     elif mode == 1:
-        # Logging keypoints with the provided label
         csv_path = 'model/keypoint_classifier/keypoint.csv'
         with open(csv_path, 'a', newline="") as f:
             writer = csv.writer(f)
             writer.writerow([label, *landmark_list])
-    elif mode == 2 and (0 <= label <= 9):
-        csv_path = 'model/point_history_classifier/point_history.csv'
-        with open(csv_path, 'a', newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow([label, *point_history_list])
     return
 
 def draw_landmarks(image, landmark_point):
@@ -409,87 +505,87 @@ def draw_landmarks(image, landmark_point):
 
     # Key Points
     for index, landmark in enumerate(landmark_point):
-        if index == 0:  # 手首1
+        if index == 0:
             cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 1:  # 手首2
+        if index == 1:
             cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 2:  # 親指：付け根
+        if index == 2:
             cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 3:  # 親指：第1関節
+        if index == 3:
             cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 4:  # 親指：指先
+        if index == 4:
             cv.circle(image, (landmark[0], landmark[1]), 8, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 8, (0, 0, 0), 1)
-        if index == 5:  # 人差指：付け根
+        if index == 5:
             cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 6:  # 人差指：第2関節
+        if index == 6:
             cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 7:  # 人差指：第1関節
+        if index == 7:
             cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 8:  # 人差指：指先
+        if index == 8:
             cv.circle(image, (landmark[0], landmark[1]), 8, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 8, (0, 0, 0), 1)
-        if index == 9:  # 中指：付け根
+        if index == 9:
             cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 10:  # 中指：第2関節
+        if index == 10:
             cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 11:  # 中指：第1関節
+        if index == 11:
             cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 12:  # 中指：指先
+        if index == 12:
             cv.circle(image, (landmark[0], landmark[1]), 8, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 8, (0, 0, 0), 1)
-        if index == 13:  # 薬指：付け根
+        if index == 13:
             cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 14:  # 薬指：第2関節
+        if index == 14:
             cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 15:  # 薬指：第1関節
+        if index == 15:
             cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 16:  # 薬指：指先
+        if index == 16:
             cv.circle(image, (landmark[0], landmark[1]), 8, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 8, (0, 0, 0), 1)
-        if index == 17:  # 小指：付け根
+        if index == 17:
             cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 18:  # 小指：第2関節
+        if index == 18:
             cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 19:  # 小指：第1関節
+        if index == 19:
             cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 20:  # 小指：指先
+        if index == 20:
             cv.circle(image, (landmark[0], landmark[1]), 8, (255, 255, 255),
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 8, (0, 0, 0), 1)
@@ -504,8 +600,7 @@ def draw_bounding_rect(use_brect, image, brect):
 
     return image
 
-def draw_info_text(image, brect, handedness, hand_sign_text,
-                   finger_gesture_text):
+def draw_info_text(image, brect, handedness, hand_sign_text,):
     cv.rectangle(image, (brect[0], brect[1]), (brect[2], brect[1] - 22),
                  (0, 0, 0), -1)
 
@@ -516,13 +611,6 @@ def draw_info_text(image, brect, handedness, hand_sign_text,
                cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1, cv.LINE_AA)
     return image
 
-def draw_point_history(image, point_history):
-    for index, point in enumerate(point_history):
-        if point[0] != 0 and point[1] != 0:
-            cv.circle(image, (point[0], point[1]), 1 + int(index / 2),
-                      (152, 251, 152), 2)
-
-    return image
 
 def draw_info(image, fps, mode, number):
     cv.putText(image, "FPS:" + str(fps), (10, 30), cv.FONT_HERSHEY_SIMPLEX,
@@ -530,9 +618,9 @@ def draw_info(image, fps, mode, number):
     cv.putText(image, "FPS:" + str(fps), (10, 30), cv.FONT_HERSHEY_SIMPLEX,
                1.0, (255, 255, 255), 2, cv.LINE_AA)
 
-    mode_string = ['Logging Key Point', 'Logging Point History']
-    if 1 <= mode <= 2:
-        cv.putText(image, "MODE:" + mode_string[mode - 1], (10, 90),
+    mode_string = ['Logging Key Point']
+    if mode == 1:
+        cv.putText(image, "MODE:" + mode_string[0], (10, 90),
                    cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1,
                    cv.LINE_AA)
         if 0 <= number <= 9:

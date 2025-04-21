@@ -54,7 +54,7 @@ const Home = () => {
         </View>
 
         {/* Profile Avatar */}
-        <TouchableOpacity onPress={() => router.push('/account-details')}>
+        <TouchableOpacity onPress={() => router.push('/account-detail')}>
           {userData?.profilePictureBase64 ? (
             <Image
               source={{ uri: `data:image/jpeg;base64,${userData.profilePictureBase64}` }}
@@ -84,11 +84,11 @@ const Home = () => {
 
             <TouchableOpacity
               className="flex-row items-center bg-gray-800 p-6 rounded-lg shadow-md w-full mt-2"
-              onPress={() => router.push('/stats')}
+              onPress={() => router.push('/translator')}
             >
               <MaterialIcons name="bar-chart" size={30} color="white" />
               <Text className="ml-3 text-2xl text-white">
-                Show Your Stats
+                Chat With Friends
               </Text>
             </TouchableOpacity>
           </View>
