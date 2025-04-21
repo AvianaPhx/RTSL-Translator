@@ -119,7 +119,7 @@ const Translator = () => {
   return (
     <SafeAreaView className="bg-gray-900 flex-1">
       <Text className="text-white text-2xl font-semibold text-center my-4">
-        Your Friends
+        Messages
       </Text>
 
       <FlatList
@@ -166,7 +166,7 @@ const Translator = () => {
         }
       />
 
-      <View className="absolute bottom-0 left-0 right-0">
+      <View className="absolute bottom-0 left-0 right-0 m-4">
         <TabBar />
       </View>
     </SafeAreaView>

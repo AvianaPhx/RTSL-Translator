@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { auth, db } from '@/config/firebase';
 import {
   collection,
@@ -25,6 +26,7 @@ import {
 const Friend = () => {
   const user = auth.currentUser;
   const uid = user?.uid;
+  const router = useRouter();
 
   const [pendingRequests, setPendingRequests] = useState([]);
   const [receivedRequests, setReceivedRequests] = useState([]);
@@ -198,10 +200,21 @@ const Friend = () => {
         data={friendsList}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <View className="flex-row items-center bg-gray-800 p-3 rounded-lg my-2">
+          <TouchableOpacity
+            onPress={() =>
+              router.push({
+                pathname: '/chat',
+                params: {
+                  chatId: [uid, item.id].sort().join('_'),
+                  friendName: item.user.username,
+                },
+              })
+            }
+            className="flex-row items-center bg-gray-800 p-3 rounded-lg my-2"
+          >
             {renderAvatar(item.user)}
             <Text className="text-white">{item.user.username}</Text>
-          </View>
+          </TouchableOpacity>
         )}
         ListEmptyComponent={
           <Text className="text-gray-400 text-center my-2">

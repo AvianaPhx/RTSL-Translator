@@ -130,7 +130,7 @@ const Connect = () => {
         className="mt-4"
       />
 
-      <View className="absolute bottom-0 left-0 right-0">
+      <View className="absolute bottom-0 left-0 right-0 m-4">
         <TabBar />
       </View>
     </SafeAreaView>

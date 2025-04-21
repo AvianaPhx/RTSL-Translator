@@ -18,8 +18,6 @@ import { signOut } from 'firebase/auth';
 const Setting = () => {
   const routes = {
     accountDetail: '/account-detail',
-    editProfile: '/edit-profile',
-    changeLanguage: '/change-language',
     help: '/help',
     test: '/home',
   };
@@ -108,15 +106,7 @@ const Setting = () => {
             />
             <TabButton
               title="Edit Profile"
-              handlePress={() => navigateTo(routes.editProfile)}
-              containerStyles="flex-row justify-between mb-4"
-              textStyles="text-lg text-white"
-              isLoading={isSubmitting}
-              icon={<FontAwesome name="chevron-right" size={20} color="gray" />}
-            />
-            <TabButton
-              title="Change Sign Language"
-              handlePress={() => navigateTo(routes.changeLanguage)}
+              handlePress={() => navigateTo(routes.accountDetail)}
               containerStyles="flex-row justify-between mb-4"
               textStyles="text-lg text-white"
               isLoading={isSubmitting}
@@ -129,7 +119,7 @@ const Setting = () => {
             </Text>
 
             <TabButton
-              title="Help"
+              title="Chat with Admin"
               handlePress={() => navigateTo(routes.help)}
               containerStyles="flex-row justify-between mb-4"
               textStyles="text-lg text-white"

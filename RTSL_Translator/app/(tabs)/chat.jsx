@@ -96,7 +96,19 @@ const Chat = () => {
         <TouchableOpacity onPress={() => router.back()} className="p-2">
           <FontAwesome name="arrow-left" size={24} color="white" />
         </TouchableOpacity>
-        <Text className="text-white text-lg font-semibold">{friendName}</Text>
+        <TouchableOpacity
+          onPress={() =>
+            router.push({
+              pathname: '/user-profile',
+              params: {
+                chatId,
+                friendName,
+              },
+            })
+          }
+        >
+          <Text className="text-white text-lg font-semibold">{friendName}</Text>
+        </TouchableOpacity>
         <View style={{ width: 32 }} />
       </View>
 

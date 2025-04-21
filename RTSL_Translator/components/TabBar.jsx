@@ -12,11 +12,11 @@ const TabBar = () => {
             <TouchableOpacity onPress={() => router.navigate('/home')}>
                 <FontAwesome name="home" size={34} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.navigate('/translator')}>
-                <FontAwesome name="language" size={34} color="white" />
+            <TouchableOpacity onPress={() => router.push('/translator')}>
+                <FontAwesome name="comment" size={34} color="white" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => router.navigate('/connect')}>
-                <FontAwesome name="comment" size={34} color="white" />
+                <FontAwesome name="link" size={34} color="white" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => router.navigate('/setting')}>
                 <FontAwesome name="cog" size={34} color="white" />
