@@ -15,8 +15,6 @@ from utils import CvFpsCalc
 from model import KeyPointClassifier
 from model import PointHistoryClassifier
 
-
-
 def get_args():
     parser = argparse.ArgumentParser()
 
@@ -37,7 +35,6 @@ def get_args():
     args = parser.parse_args()
 
     return args
-
 
 def main():
     
@@ -111,6 +108,11 @@ def main():
         key = cv.waitKey(10)
         if key == 27:  # ESC
             break
+        
+        # Print current word on Enter
+        if key in (13, 10):  # 13 = CR, 10 = LF
+            print(f'Current Word: {current_word}')
+            
         number, mode = select_mode(key, mode)
 
         # Camera capture #####################################################
@@ -191,7 +193,6 @@ def main():
     cap.release()
     cv.destroyAllWindows()
 
-
 def select_mode(key, mode):
     global custom_label
     number = -1
@@ -229,7 +230,6 @@ def calc_bounding_rect(image, landmarks):
 
     return [x, y, x + w, y + h]
 
-
 def calc_landmark_list(image, landmarks):
     image_width, image_height = image.shape[1], image.shape[0]
 
@@ -244,7 +244,6 @@ def calc_landmark_list(image, landmarks):
         landmark_point.append([landmark_x, landmark_y])
 
     return landmark_point
-
 
 def pre_process_landmark(landmark_list):
     temp_landmark_list = copy.deepcopy(landmark_list)
@@ -271,7 +270,6 @@ def pre_process_landmark(landmark_list):
     temp_landmark_list = list(map(normalize_, temp_landmark_list))
 
     return temp_landmark_list
-
 
 def pre_process_point_history(image, point_history):
     image_width, image_height = image.shape[1], image.shape[0]
@@ -310,7 +308,6 @@ def logging_csv(label, mode, landmark_list, point_history_list):
             writer = csv.writer(f)
             writer.writerow([label, *point_history_list])
     return
-
 
 def draw_landmarks(image, landmark_point):
     if len(landmark_point) > 0:
@@ -499,7 +496,6 @@ def draw_landmarks(image, landmark_point):
 
     return image
 
-
 def draw_bounding_rect(use_brect, image, brect):
     if use_brect:
         # Outer rectangle
@@ -507,7 +503,6 @@ def draw_bounding_rect(use_brect, image, brect):
                      (0, 0, 0), 1)
 
     return image
-
 
 def draw_info_text(image, brect, handedness, hand_sign_text,
                    finger_gesture_text):
@@ -521,7 +516,6 @@ def draw_info_text(image, brect, handedness, hand_sign_text,
                cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1, cv.LINE_AA)
     return image
 
-
 def draw_point_history(image, point_history):
     for index, point in enumerate(point_history):
         if point[0] != 0 and point[1] != 0:
@@ -529,7 +523,6 @@ def draw_point_history(image, point_history):
                       (152, 251, 152), 2)
 
     return image
-
 
 def draw_info(image, fps, mode, number):
     cv.putText(image, "FPS:" + str(fps), (10, 30), cv.FONT_HERSHEY_SIMPLEX,
@@ -547,7 +540,6 @@ def draw_info(image, fps, mode, number):
                        cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1,
                        cv.LINE_AA)
     return image
-
 
 if __name__ == '__main__':
     main()

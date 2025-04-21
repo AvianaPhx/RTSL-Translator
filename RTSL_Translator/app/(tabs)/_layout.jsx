@@ -11,6 +11,7 @@ const TabsLayout = () => {
           <Stack.Screen name="home" options={{ headerShown: false }} />
           <Stack.Screen name="friend" options={{ headerShown: false }} />
           <Stack.Screen name="translator" options={{ headerShown: false }} />
+          <Stack.Screen name="chat" options={{ headerShown: false }} />
           <Stack.Screen name="connect" options={{ headerShown: false }} />
           <Stack.Screen name="setting" options={{ headerShown: false }} />
         </Stack>

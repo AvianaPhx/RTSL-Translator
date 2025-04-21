@@ -1,32 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Alert, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import TabButton from '@/components/TabButton';
 import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth, db } from '@/config/firebase';
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 
 const Setting = () => {
-
   const routes = {
-    accountDetail: "/account-detail",
-    editProfile: "/edit-profile",
-    changeLanguage: "/change-language",
-    help: "/help",
-    test: "/home"
-  }
+    accountDetail: '/account-detail',
+    editProfile: '/edit-profile',
+    changeLanguage: '/change-language',
+    help: '/help',
+    test: '/home',
+  };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   const navigateTo = (path) => {
     setIsSubmitting(true);
-  
     setTimeout(() => {
       setIsSubmitting(false);
-      router.push(path); 
+      router.push(path);
     }, 300);
   };
 
@@ -36,16 +41,11 @@ const Setting = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const user = auth.currentUser; // Get the logged-in user
+        const user = auth.currentUser;
         if (!user) return;
-
-        const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-
-        if (userSnap.exists()) {
-          setUserData(userSnap.data()); // Store user data
-        } else {
-          console.log('No user data found!');
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        if (snap.exists()) {
+          setUserData(snap.data());
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -57,17 +57,36 @@ const Setting = () => {
     fetchUserData();
   }, []);
 
-  return (
-    <SafeAreaView className="flex-1 bg-gray-900"> 
+  // derive initial for avatar fallback
+  const initial = userData?.username?.charAt(0).toUpperCase() || '?';
 
-      {/* Header */}
-      <View className="m-5">
-        <Text className="font-bold text-5xl md:text-4xl text-purple-400">
-          {userData?.username || 'User'}
-        </Text>
-        <Text className="text-white text-2xl md:text-xl mt-1">
-          {auth.currentUser?.email}
-        </Text>
+  return (
+    <SafeAreaView className="flex-1 bg-gray-900">
+
+      {/* Header with avatar */}
+      <View className="flex-row justify-between items-center mx-5 my-4">
+        <View>
+          <Text className="font-bold text-5xl text-purple-400">
+            {userData?.username || 'User'}
+          </Text>
+          <Text className="text-white text-2xl mt-1">
+            {auth.currentUser?.email}
+          </Text>
+        </View>
+
+        {/* Profile Avatar */}
+        <TouchableOpacity onPress={() => navigateTo(routes.accountDetail)}>
+          {userData?.profilePictureBase64 ? (
+            <Image
+              source={{ uri: `data:image/jpeg;base64,${userData.profilePictureBase64}` }}
+              className="w-20 h-20 rounded-full"
+            />
+          ) : (
+            <View className="w-20 h-20 rounded-full bg-gray-700 justify-center items-center">
+              <Text className="text-white text-2xl font-bold">{initial}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
@@ -75,37 +94,87 @@ const Setting = () => {
           <View className="w-full max-w-lg">
 
             {/* Account Settings */}
-            <Text className="text-gray-400 font-semibold mb-2 text-lg">Account Settings</Text>
+            <Text className="text-gray-400 font-semibold mb-2 text-lg">
+              Account Settings
+            </Text>
 
-            <TabButton title="Account Details" handlePress={() => navigateTo(routes.accountDetail)} containerStyles="flex-row justify-between mb-4" textStyles="text-lg text-white" isLoading={isSubmitting} icon={<FontAwesome name="chevron-right" size={20} color="gray" />} />
-            <TabButton title="Edit Profile" handlePress={() => navigateTo(routes.editProfile)} containerStyles="flex-row justify-between mb-4" textStyles="text-lg text-white" isLoading={isSubmitting} icon={<FontAwesome name="chevron-right" size={20} color="gray" />} />
-            <TabButton title="Change Sign Language" handlePress={() => navigateTo(routes.changeLanguage)} containerStyles="flex-row justify-between mb-4" textStyles="text-lg text-white" isLoading={isSubmitting} icon={<FontAwesome name="chevron-right" size={20} color="gray" />} />
+            <TabButton
+              title="Account Details"
+              handlePress={() => navigateTo(routes.accountDetail)}
+              containerStyles="flex-row justify-between mb-4"
+              textStyles="text-lg text-white"
+              isLoading={isSubmitting}
+              icon={<FontAwesome name="chevron-right" size={20} color="gray" />}
+            />
+            <TabButton
+              title="Edit Profile"
+              handlePress={() => navigateTo(routes.editProfile)}
+              containerStyles="flex-row justify-between mb-4"
+              textStyles="text-lg text-white"
+              isLoading={isSubmitting}
+              icon={<FontAwesome name="chevron-right" size={20} color="gray" />}
+            />
+            <TabButton
+              title="Change Sign Language"
+              handlePress={() => navigateTo(routes.changeLanguage)}
+              containerStyles="flex-row justify-between mb-4"
+              textStyles="text-lg text-white"
+              isLoading={isSubmitting}
+              icon={<FontAwesome name="chevron-right" size={20} color="gray" />}
+            />
 
             {/* More Info */}
-            <Text className="text-gray-400 font-semibold mb-3 text-lg">More info and support</Text>
+            <Text className="text-gray-400 font-semibold mb-3 text-lg">
+              More info and support
+            </Text>
 
-            <TabButton title="Help" handlePress={() => navigateTo(routes.help)} containerStyles="flex-row justify-between mb-4" textStyles="text-lg text-white" isLoading={isSubmitting} icon={<FontAwesome name="chevron-right" size={20} color="gray" />} />
-            <TabButton title="Terms & Services" handlePress={() => navigateTo(routes.test)} containerStyles="flex-row justify-between mb-4" textStyles="text-lg text-white" isLoading={isSubmitting} icon={<FontAwesome name="chevron-right" size={20} color="gray" />} />
-            <TabButton title="User Guide" handlePress={() => navigateTo(routes.test)} containerStyles="flex-row justify-between mb-4" textStyles="text-lg text-white" isLoading={isSubmitting} icon={<FontAwesome name="chevron-right" size={20} color="gray" />} />
+            <TabButton
+              title="Help"
+              handlePress={() => navigateTo(routes.help)}
+              containerStyles="flex-row justify-between mb-4"
+              textStyles="text-lg text-white"
+              isLoading={isSubmitting}
+              icon={<FontAwesome name="chevron-right" size={20} color="gray" />}
+            />
+            <TabButton
+              title="Terms & Services"
+              handlePress={() => navigateTo(routes.test)}
+              containerStyles="flex-row justify-between mb-4"
+              textStyles="text-lg text-white"
+              isLoading={isSubmitting}
+              icon={<FontAwesome name="chevron-right" size={20} color="gray" />}
+            />
+            <TabButton
+              title="User Guide"
+              handlePress={() => navigateTo(routes.test)}
+              containerStyles="flex-row justify-between mb-4"
+              textStyles="text-lg text-white"
+              isLoading={isSubmitting}
+              icon={<FontAwesome name="chevron-right" size={20} color="gray" />}
+            />
 
             {/* Logout */}
-            <Text className="text-gray-400 font-semibold mb-3 text-lg">Login</Text>
-            <TabButton 
+            <Text className="text-gray-400 font-semibold mb-3 text-lg">
+              Login
+            </Text>
+            <TabButton
               title="Logout"
-              handlePress={() => Alert.alert("Logout", "Are you sure you want to log out?", [
-                { text: "Cancel", style: "cancel" },
-                { text: "Logout", onPress: () => {
-                  // Log out the user when "Yes" is pressed
-                  signOut(auth)
-                    .then(() => {
-                      console.log('User logged out successfully');
-                      router.replace('/sign-in'); // Redirect to the sign-in page
-                    })
-                    .catch((error) => {
-                      console.error('Error logging out:', error);
-                    });
-                }}
-              ])}
+              handlePress={() =>
+                Alert.alert('Logout', 'Are you sure you want to log out?', [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Logout',
+                    onPress: () => {
+                      signOut(auth)
+                        .then(() => {
+                          console.log('User logged out successfully');
+                          router.replace('/sign-in');
+                        })
+                        .catch((err) => console.error('Error logging out:', err));
+                    },
+                  },
+                ])
+              }
               containerStyles="w-full items-center mb-6"
               textStyles="text-red-500 text-xl font-bold"
               isLoading={isSubmitting}
@@ -114,7 +183,7 @@ const Setting = () => {
         </View>
       </ScrollView>
     </SafeAreaView>
-  )
-}
+  );
+};
 
-export default Setting
+export default Setting;

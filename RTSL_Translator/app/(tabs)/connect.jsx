@@ -1,118 +1,124 @@
-import React, { useState, useEffect } from 'react';
-import { View, TextInput, TouchableOpacity, FlatList, Text, Alert } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  Text,
+  Alert,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth, db } from '@/config/firebase';
-import { collection, query, where, getDocs, setDoc, doc } from 'firebase/firestore'; // Firestore methods
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  setDoc,
+  getDoc,
+  doc,
+} from 'firebase/firestore';
 import TabBar from '@/components/TabBar';
 import { useRouter } from 'expo-router';
 
 const Connect = () => {
-  const [searchQuery, setSearchQuery] = useState(''); // Search query for users
-  const [searchResults, setSearchResults] = useState([]); // Store the search results
-  const router = useRouter(); // For navigation
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const router = useRouter();
 
-  // Search for users in Firestore  
+  // Exact-match search on `email`
   const searchUsers = async () => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]); // Clear results if no query
+    const email = searchQuery.trim();
+    if (!email) {
+      setSearchResults([]);
       return;
     }
+    try {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('email', '==', email));
+      const snap = await getDocs(q);
 
-    // Normalize the search query
-    const normalizedQuery = searchQuery.toLowerCase().replace(/\s+/g, ''); // Convert to lowercase and remove spaces
+      const users = snap.docs
+        .map(d => ({ uid: d.id, ...d.data() }))
+        .filter(u => u.uid !== auth.currentUser.uid);
 
-    // Query Firestore for users whose username starts with the search query (ignoring case and spaces)
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef);
-
-    const querySnapshot = await getDocs(q);
-    const users = querySnapshot.docs
-      .map(doc => doc.data())
-      .filter(user => 
-        user.username.toLowerCase().includes(normalizedQuery) && 
-        user.uid !== auth.currentUser.uid // Exclude the current user
-      ); // Filter users based on normalized search query and exclude the current user
-
-    setSearchResults(users); // Set the search results
+      setSearchResults(users);
+      if (users.length === 0) {
+        Alert.alert('No users found', 'Double‐check the exact email.');
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Search error', 'Could not search right now.');
+    }
   };
 
-  // Send Friend Request
+  // Send friend request: doc ID = `${sender}_${receiver}`
   const sendFriendRequest = async (receiverId) => {
     const senderId = auth.currentUser.uid;
+    const frId = `${senderId}_${receiverId}`;
+    const frRef = doc(db, 'friendRequests', frId);
 
-    // Check if receiverId is valid
-    if (!receiverId) {
-      Alert.alert("Error", "Invalid user selected. Please try again.");
-      return;
+    // Already exists?
+    const existing = await getDoc(frRef);
+    if (existing.exists()) {
+      return Alert.alert('Request Exists', 'You already sent a request.');
     }
 
-    // Check if a friend request already exists between these two users
-    const friendRequestRef = doc(db, 'friendRequests', `${senderId}_${receiverId}`);
-    const friendRequestSnap = await getDoc(friendRequestRef);
-
-    if (!friendRequestSnap.exists()) {
-      const requestData = {
+    try {
+      await setDoc(frRef, {
+        id:       frId,       // include the doc ID in the data
         senderId,
         receiverId,
-        status: 'pending', // Set initial status as pending
-      };
-
-      try {
-        // Store the friend request in the Firestore database
-        await setDoc(friendRequestRef, requestData); 
-
-        // Show the alert after successfully sending the request
-        Alert.alert("Request Sent", "You have sent a friend request. Please wait for the other user to approve.");
-      } catch (error) {
-        console.error("Error sending friend request:", error);
-        Alert.alert("Error", "There was an issue sending your friend request.");
-      }
-    } else {
-      Alert.alert("Request Exists", "A friend request already exists between these users.");
+        status:   'pending',
+        createdAt: new Date().toISOString(),
+      });
+      Alert.alert('Request Sent', 'Please wait for approval.');
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Error', 'Could not send the request.');
     }
-  };
-
-  // Navigate to Friends page
-  const navigateToFriends = () => {
-    router.push('friend'); // Navigate to the friends screen
   };
 
   return (
     <SafeAreaView className="bg-gray-900 flex-1 p-4">
-
-      {/* Friends Button */}
-      <TouchableOpacity onPress={navigateToFriends} className="bg-blue-600 p-3 rounded-lg mb-4">
-        <Text className="text-white font-semibold text-center">Go to Friends</Text>
+      <TouchableOpacity
+        onPress={() => router.push('/friend')}
+        className="bg-blue-600 p-3 rounded-lg mb-4"
+      >
+        <Text className="text-white font-semibold text-center">
+          Go to Friends
+        </Text>
       </TouchableOpacity>
 
-      {/* Search Section */}
       <View className="flex-row items-center justify-between mt-4">
         <TextInput
+          placeholder="Search by exact email…"
+          placeholderTextColor="#888"
+          autoCapitalize="none"
+          keyboardType="email-address"
           value={searchQuery}
-          onChangeText={setSearchQuery} // Update search query on each keystroke
-          placeholder="Search for users..."
+          onChangeText={setSearchQuery}
           className="flex-1 p-3 bg-white text-black rounded-lg mr-2"
         />
-        <TouchableOpacity 
-          onPress={searchUsers} // Search triggered by clicking the button
+        <TouchableOpacity
+          onPress={searchUsers}
           className="p-3 bg-blue-600 rounded-lg"
         >
           <Text className="text-white font-semibold">Search</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Search Results */}
       <FlatList
         data={searchResults}
-        keyExtractor={(item) => item.uid || item.username} // Fallback to username if uid is missing
+        keyExtractor={item => item.uid}
         renderItem={({ item }) => (
           <View className="bg-gray-700 p-4 rounded-xl my-3 flex-row items-center justify-between">
-            <Text className="text-white text-lg font-semibold">{item.username}</Text>
-
-            {/* Send Friend Request Button */}
+            <Text className="text-white text-lg font-semibold">
+              {item.email}
+            </Text>
             <TouchableOpacity
-              onPress={() => sendFriendRequest(item.uid)} // Send friend request to the selected user
-              className="bg-blue-600 p-2 rounded-lg mt-2"
+              onPress={() => sendFriendRequest(item.uid)}
+              className="bg-blue-600 p-2 rounded-lg"
             >
               <Text className="text-white">Send Request</Text>
             </TouchableOpacity>
@@ -124,8 +130,7 @@ const Connect = () => {
         className="mt-4"
       />
 
-      {/* Tab Bar */}
-      <View className="bottom-0 left-0 right-0">
+      <View className="absolute bottom-0 left-0 right-0">
         <TabBar />
       </View>
     </SafeAreaView>

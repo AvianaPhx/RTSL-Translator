@@ -1,147 +1,214 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, FlatList, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  FlatList,
+  Alert
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { db, auth } from '@/config/firebase';
-import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore'; // Firestore methods
-import { FontAwesome } from '@expo/vector-icons'; // For the icon
+import { FontAwesome } from '@expo/vector-icons';
+import { auth, db } from '@/config/firebase';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  getDoc,
+  updateDoc,
+  doc,
+  setDoc,
+  arrayUnion
+} from 'firebase/firestore';
 
 const Friend = () => {
-  const [pendingRequests, setPendingRequests] = useState([]); // Store pending requests (sent by the logged-in user)
-  const [receivedRequests, setReceivedRequests] = useState([]); // Store incoming requests (received by the logged-in user)
-  const [friendsList, setFriendsList] = useState([]); // Store friends list for the logged-in user
+  const user = auth.currentUser;
+  const uid = user?.uid;
+
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [receivedRequests, setReceivedRequests] = useState([]);
+  const [friendsList, setFriendsList] = useState([]);
 
   useEffect(() => {
-    const fetchRequests = async () => {
-      const user = auth.currentUser;
-      if (user) {
-        // Fetch pending requests for the current user (sent by them)
-        const sentRequestsRef = collection(db, 'friendRequests');
-        const sentRequestsQuery = query(sentRequestsRef, where('senderId', '==', user.uid), where('status', '==', 'pending'));
-        const sentRequestsSnapshot = await getDocs(sentRequestsQuery);
-        const sentRequests = sentRequestsSnapshot.docs.map(doc => doc.data());
-        setPendingRequests(sentRequests);
+    if (!uid) return;
+    (async () => {
+      try {
+        // 1) Sent pending
+        const sentSnap = await getDocs(
+          query(
+            collection(db, 'friendRequests'),
+            where('senderId', '==', uid),
+            where('status', '==', 'pending')
+          )
+        );
+        const sent = await Promise.all(
+          sentSnap.docs.map(async d => {
+            const { receiverId, id } = d.data();
+            const uSnap = await getDoc(doc(db, 'users', receiverId));
+            const uData = uSnap.exists() ? uSnap.data() : {};
+            return { id, user: uData };
+          })
+        );
+        setPendingRequests(sent);
 
-        // Fetch incoming friend requests (received by the logged-in user)
-        const receivedRequestsRef = collection(db, 'friendRequests');
-        const receivedRequestsQuery = query(receivedRequestsRef, where('receiverId', '==', user.uid), where('status', '==', 'pending'));
-        const receivedRequestsSnapshot = await getDocs(receivedRequestsQuery);
-        const receivedRequests = receivedRequestsSnapshot.docs.map(doc => doc.data());
-        setReceivedRequests(receivedRequests);
+        // 2) Received pending
+        const recSnap = await getDocs(
+          query(
+            collection(db, 'friendRequests'),
+            where('receiverId', '==', uid),
+            where('status', '==', 'pending')
+          )
+        );
+        const received = await Promise.all(
+          recSnap.docs.map(async d => {
+            const { senderId, id } = d.data();
+            const uSnap = await getDoc(doc(db, 'users', senderId));
+            const uData = uSnap.exists() ? uSnap.data() : {};
+            return { id, senderId, user: uData };
+          })
+        );
+        setReceivedRequests(received);
 
-        // Fetch the list of friends (approved friends for the logged-in user)
-        const friendsRef = doc(db, 'friends', user.uid);
-        const friendsSnapshot = await getDoc(friendsRef);
-        if (friendsSnapshot.exists()) {
-          setFriendsList(friendsSnapshot.data().friends || []);
-        }
+        // 3) Friends list
+        const frSnap = await getDoc(doc(db, 'friends', uid));
+        const friendIds = frSnap.exists() ? frSnap.data().friends : [];
+        const friends = await Promise.all(
+          friendIds.map(async fid => {
+            const uSnap = await getDoc(doc(db, 'users', fid));
+            const uData = uSnap.exists() ? uSnap.data() : {};
+            return { id: fid, user: uData };
+          })
+        );
+        setFriendsList(friends);
+      } catch (error) {
+        console.error('Error loading friends data', error);
       }
-    };
+    })();
+  }, [uid]);
 
-    fetchRequests();
-  }, []);
-
-  // Accept a friend request
-  const acceptRequest = async (friendRequestId, senderId) => {
-    // Update the friend request status to 'approved'
-    const friendRequestRef = doc(db, 'friendRequests', friendRequestId);
-    await updateDoc(friendRequestRef, { status: 'approved' });
-
-    // Add the sender to the logged-in user's friends list
-    const user = auth.currentUser;
-    const friendsRef = doc(db, 'friends', user.uid);
-    await updateDoc(friendsRef, {
-      friends: [...friendsList, senderId]
-    });
-
-    // Add the logged-in user to the sender's friends list
-    const senderFriendsRef = doc(db, 'friends', senderId);
-    await updateDoc(senderFriendsRef, {
-      friends: [...friendsList, user.uid]
-    });
-
-    Alert.alert("Friend Request Accepted", "You are now friends!");
-
-    // Refresh the requests and friends lists
-    setReceivedRequests(receivedRequests.filter(request => request.senderId !== senderId));
+  const acceptRequest = async ({ id, senderId }) => {
+    try {
+      await updateDoc(doc(db, 'friendRequests', id), { status: 'approved' });
+      await setDoc(doc(db, 'friends', uid), { friends: arrayUnion(senderId) }, { merge: true });
+      await setDoc(doc(db, 'friends', senderId), { friends: arrayUnion(uid) }, { merge: true });
+      Alert.alert('Accepted', 'You are now friends!');
+      setReceivedRequests(r => r.filter(req => req.id !== id));
+      const uSnap = await getDoc(doc(db, 'users', senderId));
+      if (uSnap.exists()) setFriendsList(f => [...f, { id: senderId, user: uSnap.data() }]);
+    } catch (error) {
+      console.error('Error accepting request', error);
+    }
   };
 
-  // Decline a friend request
-  const declineRequest = async (friendRequestId) => {
-    const friendRequestRef = doc(db, 'friendRequests', friendRequestId);
-    await updateDoc(friendRequestRef, { status: 'rejected' });
+  const declineRequest = async (id) => {
+    try {
+      await updateDoc(doc(db, 'friendRequests', id), { status: 'rejected' });
+      Alert.alert('Declined', 'Friend request rejected.');
+      setReceivedRequests(r => r.filter(req => req.id !== id));
+    } catch (error) {
+      console.error('Error rejecting request', error);
+    }
+  };
 
-    Alert.alert("Friend Request Rejected", "You have rejected the friend request.");
+  const initial = username => username?.charAt(0).toUpperCase() || '?';
 
-    // Refresh the received requests list
-    setReceivedRequests(receivedRequests.filter(request => request.id !== friendRequestId));
+  const renderAvatar = (userObj) => {
+    if (userObj?.profilePictureBase64) {
+      return (
+        <Image
+          source={{ uri: `data:image/jpeg;base64,${userObj.profilePictureBase64}` }}
+          className="w-12 h-12 rounded-full mr-3"
+        />
+      );
+    }
+    return (
+      <View className="w-12 h-12 rounded-full bg-gray-600 justify-center items-center mr-3">
+        <Text className="text-white text-lg font-bold">
+          {initial(userObj?.username)}
+        </Text>
+      </View>
+    );
   };
 
   return (
-    <SafeAreaView className="bg-gray-900 flex-1 p-4">
-      <Text className="text-white text-3xl font-semibold text-center mt-8 mb-4">
+    <SafeAreaView className="flex-1 bg-gray-900 p-4">
+      <Text className="text-white text-2xl font-semibold text-center mb-4">
         Friends
       </Text>
 
-      {/* Pending Requests Section */}
-      <View>
-        <Text className="text-white text-2xl font-semibold">Pending Requests (Sent)</Text>
-        <FlatList
-          data={pendingRequests}
-          keyExtractor={(item) => item.receiverId}  // Use receiverId as the key
-          renderItem={({ item }) => (
-            <View className="bg-gray-700 p-4 rounded-xl my-3">
-              <Text className="text-white">{item.receiverId}</Text>
-              <FontAwesome name="clock" size={20} color="yellow" />
-            </View>
-          )}
-          ListEmptyComponent={<Text className="text-white text-center mt-4">No Pending Requests</Text>}
-        />
-      </View>
+      {/* Pending Requests */}
+      <Text className="text-white text-lg font-medium mb-2">
+        Pending Requests Sent
+      </Text>
+      <FlatList
+        data={pendingRequests}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <View className="flex-row items-center bg-gray-800 p-3 rounded-lg my-2">
+            {renderAvatar(item.user)}
+            <Text className="text-white flex-1">{item.user.username}</Text>
+            <FontAwesome name="clock-o" size={20} color="yellow" />
+          </View>
+        )}
+        ListEmptyComponent={
+          <Text className="text-gray-400 text-center my-2">
+            No pending requests.
+          </Text>
+        }
+      />
 
-      {/* Friend Requests Section */}
-      <View className="mt-6">
-        <Text className="text-white text-2xl font-semibold">Friend Requests (Received)</Text>
-        <FlatList
-          data={receivedRequests}
-          keyExtractor={(item) => item.senderId}  // Use senderId as the key
-          renderItem={({ item }) => (
-            <View className="bg-gray-700 p-4 rounded-xl my-3 flex-row justify-between items-center">
-              <Text className="text-white">{item.senderId}</Text>
-              <View className="flex-row">
-                <TouchableOpacity
-                  onPress={() => acceptRequest(item.id, item.senderId)}
-                  className="bg-green-600 p-2 rounded-lg mr-2"
-                >
-                  <Text className="text-white">Accept</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => declineRequest(item.id)}
-                  className="bg-red-600 p-2 rounded-lg"
-                >
-                  <Text className="text-white">Decline</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-          ListEmptyComponent={<Text className="text-white text-center mt-4">No Friend Requests</Text>}
-        />
-      </View>
+      {/* Incoming Requests */}
+      <Text className="text-white text-lg font-medium mt-6 mb-2">
+        Incoming Requests
+      </Text>
+      <FlatList
+        data={receivedRequests}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <View className="flex-row items-center bg-gray-800 p-3 rounded-lg my-2">
+            {renderAvatar(item.user)}
+            <Text className="text-white flex-1">{item.user.username}</Text>
+            <TouchableOpacity
+              onPress={() => acceptRequest(item)}
+              className="bg-green-600 p-2 rounded-lg mr-2"
+            >
+              <Text className="text-white">Accept</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => declineRequest(item.id)}
+              className="bg-red-600 p-2 rounded-lg"
+            >
+              <Text className="text-white">Decline</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        ListEmptyComponent={
+          <Text className="text-gray-400 text-center my-2">
+            No incoming requests.
+          </Text>
+        }
+      />
 
-      {/* Friends Section */}
-      <View className="mt-6">
-        <Text className="text-white text-2xl font-semibold">Friends</Text>
-        <FlatList
-          data={friendsList}
-          keyExtractor={(item) => item}  // Use item as the key (assuming item is the user's uid)
-          renderItem={({ item }) => (
-            <View className="bg-gray-700 p-4 rounded-xl my-3">
-              <Text className="text-white">{item}</Text>
-            </View>
-          )}
-          ListEmptyComponent={<Text className="text-white text-center mt-4">No Friends</Text>}
-        />
-      </View>
-
+      {/* Friends List */}
+      <Text className="text-white text-lg font-medium mt-6 mb-2">
+        Your Friends
+      </Text>
+      <FlatList
+        data={friendsList}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <View className="flex-row items-center bg-gray-800 p-3 rounded-lg my-2">
+            {renderAvatar(item.user)}
+            <Text className="text-white">{item.user.username}</Text>
+          </View>
+        )}
+        ListEmptyComponent={
+          <Text className="text-gray-400 text-center my-2">
+            No friends yet.
+          </Text>
+        }
+      />
     </SafeAreaView>
   );
 };

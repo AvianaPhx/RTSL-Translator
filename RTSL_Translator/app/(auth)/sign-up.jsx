@@ -1,168 +1,190 @@
-import { View, Text, Pressable, Image, Alert, KeyboardAvoidingView, ScrollView, Platform} from 'react-native';
-import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  Image,
+  Alert,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform
+} from 'react-native';
+import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FormField from '@/components/FormField';
 import CustomButton from '@/components/CustomButton';
 import { router } from 'expo-router';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '@/config/firebase';
-import { doc, setDoc } from "firebase/firestore";
-import { Ionicons } from 'react-native-vector-icons';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { Ionicons } from '@expo/vector-icons';
 
 const SignUp = () => {
-  
   const [form, setForm] = useState({
     username: '',
     email: '',
     password: '',
   });
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
 
-
   const submit = async () => {
-
+    // Must agree to T&C
     if (!agreeToTerms) {
-      Alert.alert('Terms & Conditions', 'You must agree to the terms and conditions to continue.');
+      Alert.alert(
+        'Terms & Conditions',
+        'You must agree to the terms and conditions to continue.'
+      );
+      return;
+    }
+
+    const { username, email, password } = form;
+    if (!username || !email || !password) {
+      Alert.alert('Missing Fields', 'Please fill in all fields');
       return;
     }
 
     setIsSubmitting(true);
-    const { email, password, username } = form;
-  
-    if (!username || !email || !password) {
-      Alert.alert('Missing Fields', 'Please fill in all fields');
-      setIsSubmitting(false);
-      return;
-    }
-  
     try {
-      // Create the user with Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      // 1) Create the Auth user
+      const { user } = await createUserWithEmailAndPassword(
+        auth,
+        email.trim().toLowerCase(),
+        password
+      );
 
-      // Debug: Log user data before saving to db
-      console.log('User created:', user.uid);
-
-      // Store user data in db
+      // 2) Mirror into Firestore
       await setDoc(doc(db, 'users', user.uid), {
         username,
+        email:           user.email,
+        email_lowercase: user.email.toLowerCase(),
+        createdAt:       serverTimestamp(),
       });
 
-      console.log('User signed up and stored in db:', user.uid);
-  
-      // Navigate to the login page after successful sign-up
+      // 3) Navigate to Sign‑In
       router.replace('/sign-in');
     } catch (error) {
+      // Reset spinner
       setIsSubmitting(false);
 
-      // Handle invalid email specifically
-      if (error.code === 'email-already-in-use') {
-        Alert.alert('Email Already In Use', 'This email is already in use');
-      }
-      else if (error.code === 'auth/invalid-email') {
+      // Handle known errors
+      if (error.code === 'auth/email-already-in-use') {
+        Alert.alert('Email Already In Use', 'This email is already in use.');
+      } else if (error.code === 'auth/invalid-email') {
         Alert.alert('Email Error', 'Please enter a valid email address.');
-      }
-      else if (error.code === 'auth/weak-password') {
+      } else if (error.code === 'auth/weak-password') {
         Alert.alert('Password Error', 'Password should be at least 6 characters.');
-      } 
-      else if (error.code === 'too-many-requests') {
-        Alert.alert('Too Many Request', 'Too many attempts. Please try again later.');
+      } else if (error.code === 'auth/too-many-requests') {
+        Alert.alert('Too Many Requests', 'Too many attempts. Try again later.');
+      } else {
+        Alert.alert('Sign‑Up Error', error.message || 'Please try again later.');
       }
-      else {
-        // Show error message for other cases
-        Alert.alert('Sign-Up Error', error.message || 'An error occurred, please try again later.');
-      }
-
     }
   };
-  
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === "ios" ? "padding" : "height"} 
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1 }}
     >
-    <SafeAreaView className="bg-gray-900 flex-1">
-        <ScrollView className="bg-gray-900" contentContainerStyle={{ flexGrow: 1}}>
-
+      <SafeAreaView className="bg-gray-900 flex-1">
+        <ScrollView
+          className="bg-gray-900"
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
           <View className="flex-1 justify-center items-center px-5">
             <View className="w-full max-w-md">
-              <Text className="text-5xl font-bold text-purple-400 text-center">Create an account</Text>
-    
-              <FormField 
+              <Text className="text-5xl font-bold text-purple-400 text-center">
+                Create an account
+              </Text>
+
+              <FormField
                 title="Username"
                 value={form.username}
-                placeholder={"Enter your username"}
-                handleChangeText={(e) => setForm({ ...form, username: e })}
+                placeholder="Enter your username"
+                handleChangeText={e => setForm({ ...form, username: e })}
                 otherStyles="mt-7"
               />
-              <FormField 
+              <FormField
                 title="Email"
                 value={form.email}
-                placeholder={"Enter your email address"}
-                handleChangeText={(e) => setForm({ ...form, email: e })}
+                placeholder="Enter your email address"
+                handleChangeText={e => setForm({ ...form, email: e })}
                 otherStyles="mt-5"
                 keyboardType="email-address"
+                autoCapitalize="none"
               />
-              <FormField 
+              <FormField
                 title="Password"
                 value={form.password}
-                placeholder={"Enter your password"}
-                handleChangeText={(e) => setForm({ ...form, password: e })}
+                placeholder="Enter your password"
+                handleChangeText={e => setForm({ ...form, password: e })}
                 otherStyles="mt-5"
                 secureTextEntry
               />
-    
+
               {/* Terms & Conditions */}
               <View className="flex-row items-center my-6">
-              {/* Toggle Checkmark */}
-              <Pressable
-                onPress={() => setAgreeToTerms(!agreeToTerms)}
-                className="w-8 h-8 border-2 border-white rounded-full justify-center items-center mr-2"
-              >
-                {agreeToTerms && (
-                  <Ionicons name="checkmark-circle" size={24} color="#ffffff" />
-                )}
-              </Pressable>
-              <Text className="text-gray-400 text-xl">
-                I agree to the <Text className="text-purple-400 font-semibold text-xl">terms & conditions</Text>
-              </Text>
-            </View>
-    
+                <Pressable
+                  onPress={() => setAgreeToTerms(!agreeToTerms)}
+                  className="w-8 h-8 border-2 border-white rounded-full justify-center items-center mr-2"
+                >
+                  {agreeToTerms && (
+                    <Ionicons name="checkmark-circle" size={24} color="#fff" />
+                  )}
+                </Pressable>
+                <Text className="text-gray-400 text-xl">
+                  I agree to the{' '}
+                  <Text className="text-purple-400 font-semibold text-xl">
+                    terms & conditions
+                  </Text>
+                </Text>
+              </View>
+
               {/* Sign Up Button */}
-              <CustomButton 
-                title="Sign Up &gt;"
+              <CustomButton
+                title="Sign Up >"
                 handlePress={submit}
                 containerStyles="w-full mt-3"
                 isLoading={isSubmitting}
               />
-    
-              <Text className="text-center text-gray-400 my-5 text-xl">or sign up with</Text>
-    
-              {/* Social Sign-In Buttons */}
+
+              <Text className="text-center text-gray-400 my-5 text-xl">
+                or sign up with
+              </Text>
+
+              {/* Social Sign‑In Buttons */}
               <View className="flex-row justify-center gap-5">
-                <Image source={require('../../assets/icons/bookmark.png')} style={{ width: 40, height: 40 }} />
-                <Image source={require('../../assets/icons/bookmark.png')} style={{ width: 40, height: 40 }} />
-                <Image source={require('../../assets/icons/bookmark.png')} style={{ width: 40, height: 40 }} />
+                <Image
+                  source={require('../../assets/icons/bookmark.png')}
+                  style={{ width: 40, height: 40 }}
+                />
+                <Image
+                  source={require('../../assets/icons/bookmark.png')}
+                  style={{ width: 40, height: 40 }}
+                />
+                <Image
+                  source={require('../../assets/icons/bookmark.png')}
+                  style={{ width: 40, height: 40 }}
+                />
               </View>
-    
+
               {/* Sign In Link */}
               <View className="flex-row justify-center pt-5">
-                <Text className="text-gray-400 text-xl">Already have an account?</Text>
+                <Text className="text-gray-400 text-xl">
+                  Already have an account?
+                </Text>
                 <Pressable onPress={() => router.replace('/sign-in')}>
-                  <Text className="text-purple-400 font-semibold text-xl ml-1">Sign In</Text>
+                  <Text className="text-purple-400 font-semibold text-xl ml-1">
+                    Sign In
+                  </Text>
                 </Pressable>
               </View>
             </View>
           </View>
         </ScrollView>
       </SafeAreaView>
-
     </KeyboardAvoidingView>
   );
-  
 };
 
 export default SignUp;

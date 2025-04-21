@@ -1,33 +1,34 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TabBar from '@/components/TabBar';
 import { auth, db } from '@/config/firebase';
-import { doc, getDoc } from "firebase/firestore"; 
+import { doc, getDoc } from 'firebase/firestore';
 
 const Home = () => {
   const router = useRouter();
   const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const user = auth.currentUser; // Get the logged-in user
+        const user = auth.currentUser;
         if (!user) return;
-
-        const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-
-        if (userSnap.exists()) {
-          setUserData(userSnap.data()); // Store user data
-        } else {
-          console.log('No user data found!');
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        if (snap.exists()) {
+          setUserData(snap.data());
         }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
+      } catch (err) {
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -36,27 +37,42 @@ const Home = () => {
     fetchUserData();
   }, []);
 
+  // derive initial if no picture
+  const initial = userData?.username?.charAt(0).toUpperCase() || '?';
+
   return (
-
     <SafeAreaView className="bg-gray-900 flex-1">
-
       {/* Header */}
-      <View className="mx-4 mt-6 mb-6">
-        <Text className="font-bold text-4xl md:text-4xl text-purple-400">
-          Hello, {userData?.username || 'User'}
-        </Text>
-        <Text className="text-white text-xl md:text-xl mt-1">
-          Welcome to RTSL-Translator
-        </Text>
+      <View className="flex-row justify-between items-center mx-4 mt-6 mb-6">
+        <View>
+          <Text className="font-bold text-4xl text-purple-400">
+            Hello, {userData?.username || 'User'}
+          </Text>
+          <Text className="text-white text-xl mt-1">
+            Welcome to RTSL-Translator
+          </Text>
+        </View>
+
+        {/* Profile Avatar */}
+        <TouchableOpacity onPress={() => router.push('/account-details')}>
+          {userData?.profilePictureBase64 ? (
+            <Image
+              source={{ uri: `data:image/jpeg;base64,${userData.profilePictureBase64}` }}
+              className="w-20 h-20 rounded-full"
+            />
+          ) : (
+            <View className="w-20 h-20 rounded-full bg-gray-700 justify-center items-center">
+              <Text className="text-white text-xl">{initial}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
 
       <View className="flex-1 px-4">
-        {/* Scrollable Content */}
-        <ScrollView  contentContainerStyle={{ flexGrow: 1, }}>
-
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
           {/* Buttons */}
-          <View className="gap-4 mt-2 ">
-            <TouchableOpacity 
+          <View className="gap-4 mt-2">
+            <TouchableOpacity
               className="flex-row items-center bg-gray-800 p-6 rounded-lg shadow-md w-full"
               onPress={() => router.push('/connect')}
             >
@@ -66,9 +82,9 @@ const Home = () => {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               className="flex-row items-center bg-gray-800 p-6 rounded-lg shadow-md w-full mt-2"
-              onPress={() => router.push('/connect')}
+              onPress={() => router.push('/stats')}
             >
               <MaterialIcons name="bar-chart" size={30} color="white" />
               <Text className="ml-3 text-2xl text-white">
@@ -100,8 +116,8 @@ const Home = () => {
         </ScrollView>
       </View>
 
-      {/* Bottom Navigation - Fixed at Bottom */}
-      <View className="bottom-0 left-0 right-0 m-4">
+      {/* Bottom Navigation */}
+      <View className="absolute bottom-0 left-0 right-0 m-4">
         <TabBar />
       </View>
     </SafeAreaView>
