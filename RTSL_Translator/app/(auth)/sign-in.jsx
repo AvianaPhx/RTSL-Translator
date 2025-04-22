@@ -1,15 +1,19 @@
-import { View, Text, Pressable, Image, Alert, ScrollView, KeyboardAvoidingView, Platform  } from 'react-native';
+import { View, Text, Pressable, Alert, ScrollView, KeyboardAvoidingView, Platform  } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FormField from '@/components/FormField';
 import CustomButton from '@/components/CustomButton';
 import { router, Link } from 'expo-router';
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth'; // Import Firebase functions
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { auth, db } from '@/config/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+
 
 const SignIn = () => {
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form For Sign IN
+  // Firebase Form For Sign In
   const [form, setForm] = useState({
     email: '',
     password: '',
@@ -21,32 +25,60 @@ const SignIn = () => {
     "auth/invalid-credential": "Invalid credentials. Please check your email and password.",
   };
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const submit = async () => {
     setIsSubmitting(true);
-
     const { email, password } = form;
-
+  
     if (!email || !password) {
       Alert.alert('Missing Fields', 'Please fill in all fields');
       setIsSubmitting(false);
       return;
     }
-
+  
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.replace({ pathname: '/welcome' });
+      // 1) Sign in
+      const userCred = await signInWithEmailAndPassword(
+        auth,
+        email.trim().toLowerCase(),
+        password
+      );
+  
+      // 2) Lookup role from Firestore
+      const uid = userCred.user.uid;
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      const role = userDoc.exists() ? userDoc.data().role : 'member';
+  
+      setIsSubmitting(false);
+  
+      if (role === 'admin') {
+        // 3) Ask admin where to go
+        Alert.alert(
+          'Welcome Admin',
+          'Where would you like to go?',
+          [
+            {
+              text: 'App Home',
+              onPress: () => router.replace('/welcome'),
+            },
+            {
+              text: 'User Management',
+              onPress: () => router.replace('/user-management') // redirect the admin to admin page
+            },
+          ],
+          { cancelable: false }
+        );
+      } else {
+        router.replace('/welcome'); // Regular user → straight to welcome
+      }
     } catch (error) {
       setIsSubmitting(false);
-      
-      // Fetch custom error message or use default
-      const errorMessage = errorMessages[error.code] || 'Something went wrong. Please try again later.';
-      
-      Alert.alert('Sign-In Error', errorMessage);
+      const errorMessage =
+        errorMessages[error.code] ||
+        'Something went wrong. Please try again later.';
+      Alert.alert('Sign‑In Error', errorMessage);
     }
   };
-
+  
   const handleForgotPassword = async () => {
     if (!form.email) {
       Alert.alert('Forgot Password', 'Please enter your email to reset your password.');
@@ -109,18 +141,6 @@ const SignIn = () => {
                 isLoading={isSubmitting}
               />
 
-              <Text className="text-center text-xl text-gray-400 mt-6 mb-4">or sign in with</Text>
-
-              <View className="flex-row justify-center">
-                {[...Array(3)].map((_, index) => (
-                  <Image
-                    key={index}
-                    source={require('../../assets/icons/bookmark.png')}
-                    style={{ width: 40, height: 40, marginHorizontal: 15 }}
-                  />
-                ))}
-              </View>
-
               <View className="flex-row justify-center pt-5">
                 <Text className="text-center text-xl text-gray-400">Don't have an account?</Text>
                 <Link href="/sign-up" className="font-psemibold text-xl text-purple-400 ml-2">
@@ -130,7 +150,6 @@ const SignIn = () => {
 
             </View>
           </View>
-
         </ScrollView>
       </SafeAreaView>
     </KeyboardAvoidingView>

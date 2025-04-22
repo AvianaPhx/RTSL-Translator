@@ -126,7 +126,7 @@ const Chat = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="bg-gray-900 px-4 py-3"
       >
-        <View className="flex-row items-center bg-gray-800 rounded-full px-4 py-2">
+        <View className="flex-row items-center bg-gray-800 rounded-full px-4 py-4 my-3">
           <TextInput
             value={text}
             onChangeText={setText}

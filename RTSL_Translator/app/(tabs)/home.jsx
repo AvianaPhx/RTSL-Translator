@@ -86,7 +86,7 @@ const Home = () => {
               className="flex-row items-center bg-gray-800 p-6 rounded-lg shadow-md w-full mt-2"
               onPress={() => router.push('/translator')}
             >
-              <MaterialIcons name="bar-chart" size={30} color="white" />
+              <MaterialIcons name="link" size={30} color="white" />
               <Text className="ml-3 text-2xl text-white">
                 Chat With Friends
               </Text>
@@ -96,21 +96,11 @@ const Home = () => {
           {/* Info Sections */}
           <View className="gap-4 mt-10">
             <View className="bg-gray-800 p-6 rounded-lg shadow-md">
-              <Text className="text-2xl font-bold text-white">
-                RTSL-Translator
-              </Text>
-              <Text className="text-sm text-white mt-1">
-                Break communication barriers with our app! Using advanced AI and computer vision, the app translates sign language into text and speech in real time.
-              </Text>
+              
             </View>
 
             <View className="bg-gray-800 p-6 rounded-lg shadow-md mt-2">
-              <Text className="text-2xl font-bold text-white">
-                Check Your Stats
-              </Text>
-              <Text className="text-sm text-white mt-1">
-                Track your sign language progress with detailed insights on your most-used signs, strengths, and areas for improvement.
-              </Text>
+
             </View>
           </View>
         </ScrollView>

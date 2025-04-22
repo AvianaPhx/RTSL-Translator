@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   TextInput,
@@ -12,7 +12,9 @@ import { auth, db } from '@/config/firebase';
 import {
   collection,
   query,
-  where,
+  orderBy,
+  startAt,
+  endAt,
   getDocs,
   setDoc,
   getDoc,
@@ -24,33 +26,64 @@ import { useRouter } from 'expo-router';
 const Connect = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [friends, setFriends] = useState([]);
   const router = useRouter();
 
-  // Exact-match search on `email`
-  const searchUsers = async () => {
-    const email = searchQuery.trim();
+  // grab current user's email
+  const userEmail = auth.currentUser?.email || '';
+
+  // Load current user's friends list
+  useEffect(() => {
+    const loadFriends = async () => {
+      try {
+        const uid = auth.currentUser.uid;
+        const ref = doc(db, 'friends', uid);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          const arr = snap.data().friends || [];
+          setFriends(arr);
+        }
+      } catch (err) {
+        console.error('Failed to load friends', err);
+      }
+    };
+    loadFriends();
+  }, []);
+
+  // Partial-match search on `email_lowercase`
+  const searchUsers = async (email) => {
     if (!email) {
       setSearchResults([]);
       return;
     }
     try {
       const usersRef = collection(db, 'users');
-      const q = query(usersRef, where('email', '==', email));
+      const q = query(
+        usersRef,
+        orderBy('email_lowercase'),
+        startAt(email),
+        endAt(email + '\uf8ff')
+      );
       const snap = await getDocs(q);
-
       const users = snap.docs
         .map(d => ({ uid: d.id, ...d.data() }))
         .filter(u => u.uid !== auth.currentUser.uid);
 
       setSearchResults(users);
-      if (users.length === 0) {
-        Alert.alert('No users found', 'Double‐check the exact email.');
-      }
     } catch (err) {
       console.error(err);
-      Alert.alert('Search error', 'Could not search right now.');
+      Alert.alert('Search error', 'Could not perform search right now.');
     }
   };
+
+  // Auto-run search as user types, debounced
+  useEffect(() => {
+    const email = searchQuery.trim().toLowerCase();
+    const timer = setTimeout(() => {
+      searchUsers(email);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Send friend request: doc ID = `${sender}_${receiver}`
   const sendFriendRequest = async (receiverId) => {
@@ -58,7 +91,6 @@ const Connect = () => {
     const frId = `${senderId}_${receiverId}`;
     const frRef = doc(db, 'friendRequests', frId);
 
-    // Already exists?
     const existing = await getDoc(frRef);
     if (existing.exists()) {
       return Alert.alert('Request Exists', 'You already sent a request.');
@@ -66,10 +98,10 @@ const Connect = () => {
 
     try {
       await setDoc(frRef, {
-        id:       frId,       // include the doc ID in the data
+        id: frId,
         senderId,
         receiverId,
-        status:   'pending',
+        status: 'pending',
         createdAt: new Date().toISOString(),
       });
       Alert.alert('Request Sent', 'Please wait for approval.');
@@ -79,8 +111,32 @@ const Connect = () => {
     }
   };
 
+  const renderItem = ({ item }) => {
+    const isFriend = friends.includes(item.uid);
+    return (
+      <View className="bg-gray-700 p-4 rounded-xl my-3 flex-row items-center justify-between">
+        <Text className="text-white text-lg font-semibold">{item.email}</Text>
+        {isFriend ? (
+          <Text className="text-green-400 font-medium">Already Friends</Text>
+        ) : (
+          <TouchableOpacity
+            onPress={() => sendFriendRequest(item.uid)}
+            className="bg-blue-600 p-2 rounded-lg"
+          >
+            <Text className="text-white">Send Request</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView className="bg-gray-900 flex-1 p-4">
+      {/* show current user's email */}
+      <Text className="font-bold text-4xl text-purple-400 text-center mb-4">
+        {userEmail}
+      </Text>
+
       <TouchableOpacity
         onPress={() => router.push('/friend')}
         className="bg-blue-600 p-3 rounded-lg mb-4"
@@ -90,40 +146,22 @@ const Connect = () => {
         </Text>
       </TouchableOpacity>
 
-      <View className="flex-row items-center justify-between mt-4">
+      <View className="flex-row items-center justify-between mt-4 mb-4">
         <TextInput
-          placeholder="Search by exact email…"
+          placeholder="Search by email…"
           placeholderTextColor="#888"
           autoCapitalize="none"
           keyboardType="email-address"
           value={searchQuery}
           onChangeText={setSearchQuery}
-          className="flex-1 p-3 bg-white text-black rounded-lg mr-2"
+          className="flex-1 p-3 bg-white text-black rounded-lg"
         />
-        <TouchableOpacity
-          onPress={searchUsers}
-          className="p-3 bg-blue-600 rounded-lg"
-        >
-          <Text className="text-white font-semibold">Search</Text>
-        </TouchableOpacity>
       </View>
 
       <FlatList
         data={searchResults}
         keyExtractor={item => item.uid}
-        renderItem={({ item }) => (
-          <View className="bg-gray-700 p-4 rounded-xl my-3 flex-row items-center justify-between">
-            <Text className="text-white text-lg font-semibold">
-              {item.email}
-            </Text>
-            <TouchableOpacity
-              onPress={() => sendFriendRequest(item.uid)}
-              className="bg-blue-600 p-2 rounded-lg"
-            >
-              <Text className="text-white">Send Request</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        renderItem={renderItem}
         ListEmptyComponent={
           <Text className="text-white text-center mt-4">No users found</Text>
         }

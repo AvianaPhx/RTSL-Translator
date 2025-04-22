@@ -8,13 +8,19 @@ const AuthLayout = () => {
     <>
       <Stack>
         <Stack.Screen 
-          name='sign-in'
+          name='admin-chat'
           options={{
             headerShown: false
           }}
         />
         <Stack.Screen 
-          name='sign-up'
+          name='user-management'
+          options={{
+            headerShown: false
+          }}
+        />
+        <Stack.Screen 
+          name='user-help'
           options={{
             headerShown: false
           }}
@@ -22,7 +28,6 @@ const AuthLayout = () => {
       </Stack>
       <StatusBar style="light"/>
     </>
-    
   )
 }
 

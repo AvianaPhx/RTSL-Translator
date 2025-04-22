@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import csv
 import requests
 from datetime import datetime
@@ -16,10 +14,9 @@ import mediapipe as mp
 from utils import CvFpsCalc
 from model import KeyPointClassifier
 
-
 # ─── FIREBASE REST CONFIG ───────────────────────────────────────────────────────
-API_KEY    = "AIzaSyBoTMSMiqmqhDbydLbM2JPrgvhYSlGEzFU"   
-PROJECT_ID = "rtsl-translator"            
+API_KEY    = "AIzaSyBoTMSMiqmqhDbydLbM2JPrgvhYSlGEzFU"
+PROJECT_ID = "rtsl-translator"      
 # ────────────────────────────────────────────────────────────────────────────────
 
 def firebase_sign_in(email, password):
@@ -118,206 +115,6 @@ def get_args():
 
     return args
 
-def main():
-    global custom_label, saved_label_text, current_word
-    saved_label_text = ""
-    current_word = ""
-    
-    # ─── FIREBASE SIGN‑IN ────────────────────────────────────────────────────────
-    email = input("Firebase Email: ").strip()
-    password   = input("Firebase Password: ").strip()
-    id_token, my_uid = firebase_sign_in(email, password)
-    print("\n✅ Login successful!\n")
-
-    # ─── FETCH & DISPLAY FRIEND LIST ─────────────────────────────────────────────
-    friends = fetch_friend_uids(id_token, my_uid)
-    if not friends:
-        print("❗️ No friends found. Exiting.")
-        return
-
-    # build (uid, username) pairs
-    friend_profiles = []
-    for uid in friends:
-        username = fetch_username(id_token, uid)
-        friend_profiles.append((uid, username))
-
-    print("Your friends:")
-    for idx, (_, username) in enumerate(friend_profiles):
-        print(f"  [{idx}] {username}")
-
-    # ─── SELECT FRIEND BY INDEX ──────────────────────────────────────────────────
-    sel = None
-    while sel is None:
-        try:
-            choice = input("Select friend number to chat with: ").strip()
-            sel = int(choice)
-            if not (0 <= sel < len(friend_profiles)):
-                raise ValueError
-        except ValueError:
-            print("Invalid number; please enter one of:", 
-                  list(range(len(friend_profiles))))
-            sel = None
-
-    friend_uid, friend_username = friend_profiles[sel]
-    print(f"\n✅ Chat ready: you={my_uid} ↔ friend={friend_username} ({friend_uid})\n")
-    # ────────────────────────────────────────────────────────────────────────────
-
-
-    # Argument parsing #################################################################
-    args = get_args()
-
-    cap_device = args.device
-    cap_width = args.width
-    cap_height = args.height
-
-    use_static_image_mode = args.use_static_image_mode
-    min_detection_confidence = args.min_detection_confidence
-    min_tracking_confidence = args.min_tracking_confidence
-
-    use_brect = True
-
-    # Camera preparation ###############################################################
-    cap = cv.VideoCapture(cap_device)
-    cap.set(cv.CAP_PROP_FRAME_WIDTH, cap_width)
-    cap.set(cv.CAP_PROP_FRAME_HEIGHT, cap_height)
-
-    # Model load #############################################################
-    mp_hands = mp.solutions.hands
-    hands = mp_hands.Hands(
-        static_image_mode=use_static_image_mode,
-        max_num_hands=1,
-        min_detection_confidence=min_detection_confidence,
-        min_tracking_confidence=min_tracking_confidence,
-    )
-
-    keypoint_classifier = KeyPointClassifier()
-
-    # Read labels ###########################################################
-    with open('model/keypoint_classifier/keypoint_classifier_label.csv',
-              encoding='utf-8-sig') as f:
-        keypoint_classifier_labels = csv.reader(f)
-        keypoint_classifier_labels = [
-            row[0] for row in keypoint_classifier_labels
-        ]
-
-    # FPS Measurement ########################################################
-    cvFpsCalc = CvFpsCalc(buffer_len=10)
-
-    # Coordinate history #################################################################
-    history_length = 16
-
-
-    # Finger gesture history ################################################
-    finger_gesture_history = deque(maxlen=history_length)
-
-    #  ########################################################################
-    mode = 0
-    custom_label = None  # To store custom label when user provides input
-
-    while True:
-        fps = cvFpsCalc.get()
-
-        # Process Key (ESC: end) #################################################
-        key = cv.waitKey(10)
-        if key == 27:  # ESC
-            break
-        
-                # Send / print current word on Enter
-        if key in (13, 10):
-            print(f'Current Word: {current_word}')
-            try:
-                send_message(id_token, my_uid, friend_uid, current_word)
-                print("  → Sent to chat!")
-            except Exception as e:
-                print("  ! Send failed:", e)
-            # reset for next word
-            current_word = ""
-        
-        number, mode = select_mode(key, mode)
-
-        # Handle logging when in mode 1 (Logging Key Point)
-        if mode == 1 and key == ord('p'):
-            if custom_label is not None and results.multi_hand_landmarks:
-                for hand_landmarks in results.multi_hand_landmarks:
-                    landmark_list = calc_landmark_list(debug_image, hand_landmarks)
-                    pre_processed_landmark_list = pre_process_landmark(landmark_list)
-                    logging_csv(custom_label, mode, pre_processed_landmark_list)
-                    print(f"✅ Logged data for label {custom_label}")
-            else:
-                print("⚠️ No hand detected or label not set. Ensure you pressed 'k' first and your hand is visible.")
-
-
-        # Camera capture #####################################################
-        ret, image = cap.read()
-        if not ret:
-            break
-        image = cv.flip(image, 1)  # Mirror display
-        debug_image = copy.deepcopy(image)
-
-        # Detection implementation #############################################################
-        image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
-
-        image.flags.writeable = False
-        results = hands.process(image)
-        image.flags.writeable = True
-
-        #  ####################################################################
-        if results.multi_hand_landmarks is not None:
-            for hand_landmarks, handedness in zip(results.multi_hand_landmarks, results.multi_handedness):
-                # Bounding box calculation
-                brect = calc_bounding_rect(debug_image, hand_landmarks)
-                # Landmark calculation
-                landmark_list = calc_landmark_list(debug_image, hand_landmarks)
-
-                # Conversion to relative coordinates / normalized coordinates
-                pre_processed_landmark_list = pre_process_landmark(landmark_list)
-
-                # Hand sign classification
-                hand_sign_id = keypoint_classifier(pre_processed_landmark_list)
-
-                # Update saved label when user presses a number key (e.g., '1')
-                if key == ord('1'):
-                    custom_label = hand_sign_id  # Store the label
-                    saved_label_text = keypoint_classifier_labels[hand_sign_id]  # Display label in the text area
-                    current_word += saved_label_text  # Add the current label to the word
-
-                # Handle space key for adding space
-                if key == ord(' '):  # Space bar
-                    current_word += " "  # Add space to current word
-
-                # Handle backspace key for removing a character
-                if key == 8:  # Backspace
-                    current_word = current_word[:-1]  # Remove the last character
-
-                # Finger gesture classification
-                finger_gesture_id = 0
-
-
-                # Calculates the gesture IDs in the latest detection
-                finger_gesture_history.append(finger_gesture_id)
-                most_common_fg_id = Counter(finger_gesture_history).most_common()
-
-                # Drawing part
-                debug_image = draw_bounding_rect(use_brect, debug_image, brect)
-                debug_image = draw_landmarks(debug_image, landmark_list)
-                debug_image = draw_info_text(debug_image,
-                    brect,
-                    handedness,
-                    keypoint_classifier_labels[hand_sign_id],
-                )
-
-
-        debug_image = draw_info(debug_image, fps, mode, number)
-
-        # Draw the saved label text and current word on the screen
-        cv.putText(debug_image, f'Saved Label: {saved_label_text}', (10, 450), cv.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv.LINE_AA)
-        cv.putText(debug_image, f'Current Word: {current_word}', (10, 480), cv.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv.LINE_AA)
-
-        # Screen reflection #############################################################
-        cv.imshow('Hand Gesture Recognition', debug_image)
-
-    cap.release()
-    cv.destroyAllWindows()
 
 def select_mode(key, mode):
     global custom_label
@@ -611,7 +408,6 @@ def draw_info_text(image, brect, handedness, hand_sign_text,):
                cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1, cv.LINE_AA)
     return image
 
-
 def draw_info(image, fps, mode, number):
     cv.putText(image, "FPS:" + str(fps), (10, 30), cv.FONT_HERSHEY_SIMPLEX,
                1.0, (0, 0, 0), 4, cv.LINE_AA)
@@ -628,6 +424,101 @@ def draw_info(image, fps, mode, number):
                        cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1,
                        cv.LINE_AA)
     return image
+
+def run_detection_loop(
+    id_token, my_uid, friend_uid,
+    device=0, width=960, height=540,
+    use_static_image_mode=False,
+    min_detection_confidence=0.7,
+    min_tracking_confidence=0.5
+):
+    # Camera setup
+    cap = cv.VideoCapture(device)
+    cap.set(cv.CAP_PROP_FRAME_WIDTH, width)
+    cap.set(cv.CAP_PROP_FRAME_HEIGHT, height)
+
+    mp_hands = mp.solutions.hands
+    hands = mp_hands.Hands(
+        static_image_mode=use_static_image_mode,
+        max_num_hands=1,
+        min_detection_confidence=min_detection_confidence,
+        min_tracking_confidence=min_tracking_confidence,
+    )
+    keypoint_classifier = KeyPointClassifier()
+    with open('model/keypoint_classifier/keypoint_classifier_label.csv', encoding='utf-8-sig') as f:
+        keypoint_classifier_labels = [row[0] for row in csv.reader(f)]
+    cvFpsCalc = CvFpsCalc(buffer_len=10)
+    finger_gesture_history = deque(maxlen=16)
+
+    saved_label_text = ""
+    current_word = ""
+    mode = 0
+
+    while True:
+        fps = cvFpsCalc.get()
+        key = cv.waitKey(10)
+        if key == 27:  # ESC to quit
+            break
+
+        # Enter: send current_word
+        if key in (13, 10):
+            print(f'Current Word: {current_word}')
+            try:
+                send_message(id_token, my_uid, friend_uid, current_word)
+                print("  → Sent to chat!")
+            except Exception as e:
+                print("  ! Send failed:", e)
+            current_word = ""
+
+        # Mode switch & custom label prompt
+        number, mode = select_mode(key, mode)
+
+        ret, image = cap.read()
+        if not ret: break
+        image = cv.flip(image, 1)
+        debug_image = copy.deepcopy(image)
+        image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+        image.flags.writeable = False
+        results = hands.process(image)
+        image.flags.writeable = True
+
+        if results.multi_hand_landmarks:
+            for hand_landmarks, handedness in zip(results.multi_hand_landmarks, results.multi_handedness):
+                brect = calc_bounding_rect(debug_image, hand_landmarks)
+                landmark_list = calc_landmark_list(debug_image, hand_landmarks)
+                pre_processed = pre_process_landmark(landmark_list)
+                hand_sign_id = keypoint_classifier(pre_processed)
+
+                # Numeric keys → build word
+                if key == ord('1'):
+                    saved_label_text = keypoint_classifier_labels[hand_sign_id]
+                    current_word += saved_label_text
+                if key == ord(' '):
+                    current_word += " "
+                if key == 8:  # backspace
+                    current_word = current_word[:-1]
+                    
+                                # ─── p → log keypoint CSV ─────────────────────
+                if mode == 1 and key == ord('p'):
+                    if custom_label is not None:
+                        logging_csv(custom_label, mode, pre_processed)
+                        print(f"✅ Logged data for label {custom_label}")
+                    else:
+                        print("⚠️ No custom_label set. Press 'k' + number first.")
+                # ─────────────────────────────────────────────
+
+                finger_gesture_history.append(0)
+                debug_image = draw_bounding_rect(True, debug_image, brect)
+                debug_image = draw_landmarks(debug_image, landmark_list)
+                debug_image = draw_info_text(debug_image, brect, handedness, keypoint_classifier_labels[hand_sign_id])
+
+        debug_image = draw_info(debug_image, fps, mode, number)
+        cv.putText(debug_image, f'Saved: {saved_label_text}', (10,450), cv.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2)
+        cv.putText(debug_image, f'Word: {current_word}', (10,480), cv.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2)
+        cv.imshow('RTSL Translator', debug_image)
+
+    cap.release()
+    cv.destroyAllWindows()
 
 if __name__ == '__main__':
     main()

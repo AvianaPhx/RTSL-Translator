@@ -1,13 +1,4 @@
-import {
-  View,
-  Text,
-  Pressable,
-  Image,
-  Alert,
-  KeyboardAvoidingView,
-  ScrollView,
-  Platform
-} from 'react-native';
+import { View, Text, Pressable, Image, Alert, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FormField from '@/components/FormField';
@@ -28,7 +19,6 @@ const SignUp = () => {
   const [agreeToTerms, setAgreeToTerms] = useState(false);
 
   const submit = async () => {
-    // Must agree to T&C
     if (!agreeToTerms) {
       Alert.alert(
         'Terms & Conditions',
@@ -45,28 +35,24 @@ const SignUp = () => {
 
     setIsSubmitting(true);
     try {
-      // 1) Create the Auth user
       const { user } = await createUserWithEmailAndPassword(
         auth,
         email.trim().toLowerCase(),
         password
       );
 
-      // 2) Mirror into Firestore
+      // Mirror into Firestore with fixed 'member' role
       await setDoc(doc(db, 'users', user.uid), {
         username,
         email:           user.email,
         email_lowercase: user.email.toLowerCase(),
+        role:            'member',
         createdAt:       serverTimestamp(),
       });
 
-      // 3) Navigate to Sign‑In
       router.replace('/sign-in');
     } catch (error) {
-      // Reset spinner
       setIsSubmitting(false);
-
-      // Handle known errors
       if (error.code === 'auth/email-already-in-use') {
         Alert.alert('Email Already In Use', 'This email is already in use.');
       } else if (error.code === 'auth/invalid-email') {
@@ -87,10 +73,7 @@ const SignUp = () => {
       style={{ flex: 1 }}
     >
       <SafeAreaView className="bg-gray-900 flex-1">
-        <ScrollView
-          className="bg-gray-900"
-          contentContainerStyle={{ flexGrow: 1 }}
-        >
+        <ScrollView className="bg-gray-900" contentContainerStyle={{ flexGrow: 1 }}>
           <View className="flex-1 justify-center items-center px-5">
             <View className="w-full max-w-md">
               <Text className="text-5xl font-bold text-purple-400 text-center">
@@ -147,26 +130,6 @@ const SignUp = () => {
                 containerStyles="w-full mt-3"
                 isLoading={isSubmitting}
               />
-
-              <Text className="text-center text-gray-400 my-5 text-xl">
-                or sign up with
-              </Text>
-
-              {/* Social Sign‑In Buttons */}
-              <View className="flex-row justify-center gap-5">
-                <Image
-                  source={require('../../assets/icons/bookmark.png')}
-                  style={{ width: 40, height: 40 }}
-                />
-                <Image
-                  source={require('../../assets/icons/bookmark.png')}
-                  style={{ width: 40, height: 40 }}
-                />
-                <Image
-                  source={require('../../assets/icons/bookmark.png')}
-                  style={{ width: 40, height: 40 }}
-                />
-              </View>
 
               {/* Sign In Link */}
               <View className="flex-row justify-center pt-5">
