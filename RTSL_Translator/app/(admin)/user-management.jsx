@@ -86,7 +86,7 @@ const UserManagement = () => {
     setSaving(false);
   };
 
-  // Begin editing existing user
+  // Editing existing user
   const beginEdit = u => {
     setEditingUid(u.uid);
     setEditForm({ username: u.username, email: u.email, role: u.role });
@@ -256,9 +256,6 @@ const UserManagement = () => {
         <View className="absolute bottom-0 left-0 right-0 bg-gray-800 flex-row justify-around py-3 border-t border-gray-700">
             <Pressable onPress={() => router.push('/user-management')} className="items-center">
                 <Text className="text-white">Users</Text>
-            </Pressable>
-            <Pressable onPress={() => router.push('/admin-chat')} className="items-center">
-                <Text className="text-white">Admin Chat</Text>
             </Pressable>
             <Pressable onPress={() => Alert.alert(
                 'Logout',

@@ -50,7 +50,6 @@ const Connect = () => {
     loadFriends();
   }, []);
 
-  // Partial-match search on `email_lowercase`
   const searchUsers = async (email) => {
     if (!email) {
       setSearchResults([]);
@@ -76,7 +75,6 @@ const Connect = () => {
     }
   };
 
-  // Auto-run search as user types, debounced
   useEffect(() => {
     const email = searchQuery.trim().toLowerCase();
     const timer = setTimeout(() => {
@@ -85,7 +83,7 @@ const Connect = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Send friend request: doc ID = `${sender}_${receiver}`
+  // Send friend request
   const sendFriendRequest = async (receiverId) => {
     const senderId = auth.currentUser.uid;
     const frId = `${senderId}_${receiverId}`;

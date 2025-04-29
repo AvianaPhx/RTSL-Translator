@@ -52,20 +52,6 @@ const Setting = () => {
     }, 300);
   };
 
-  const chatWithAdmin = async () => {
-    const uid = auth.currentUser.uid;
-    const roomRef = doc(db, 'adminRooms', uid);
-    const snap = await getDoc(roomRef);
-    if (!snap.exists()) {
-      await setDoc(roomRef, {
-        userId: uid,
-        createdAt: serverTimestamp(),
-      });
-    }
-    // now redirect to user-help
-    router.push('/user-help');
-  };
-
   const confirmLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to log out?', [
       { text: 'Cancel', style: 'cancel' },
@@ -131,14 +117,6 @@ const Setting = () => {
             <Text className="text-gray-400 font-semibold mb-3 text-lg">
               More info and support
             </Text>
-            <TabButton
-              title="Chat with Admin"
-              handlePress={chatWithAdmin}
-              containerStyles="flex-row justify-between mb-4"
-              textStyles="text-lg text-white"
-              isLoading={false}
-              icon={<FontAwesome name="chevron-right" size={20} color="gray" />}
-            />
             <TabButton
               title="Terms & Services"
               handlePress={() => navigateTo(routes.test)}

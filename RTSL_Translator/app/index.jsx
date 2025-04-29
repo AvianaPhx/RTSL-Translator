@@ -2,17 +2,17 @@ import { View, Text, ImageBackground, Pressable, Dimensions, ScrollView } from '
 import React from 'react'
 import { router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import backgroundCover from "@/assets/images/Avatar.png"
+import backgroundCover from "@/assets/images/Grind.png"
 import CustomButton from '@/components/CustomButton'
 
 
 const App = () => {
   return (
     <SafeAreaView className="bg-gray-900 flex-1">
-      <ScrollView className="bg-gray-900" contentContainerStyle={{ flexGrow: 1}}>
+      <ScrollView className="bg-black" contentContainerStyle={{ flexGrow: 1}}>
         <View className="flex-1">
-          <ImageBackground source={backgroundCover} resizeMode="cover" className="w-full h-full justify-end">
-            
+          <View resizeMode="cover" className="w-full bg-black h-full justify-end">
+            <Text className='text-white text-6xl text-center h-[30%] font-bold'>Gatsby’s Grind</Text>
             <View className="bg-gray-900 w-full h-[45%] rounded-t-3xl p-5 ">
             
               <Text className="my-2 text-purple-400 text-6xl font-bold">Welcome</Text>
@@ -35,7 +35,7 @@ const App = () => {
 
               </View>
             </View>
-          </ImageBackground>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>

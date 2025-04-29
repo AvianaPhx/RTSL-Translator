@@ -36,14 +36,14 @@ const SignIn = () => {
     }
   
     try {
-      // 1) Sign in
+      //Sign in
       const userCred = await signInWithEmailAndPassword(
         auth,
         email.trim().toLowerCase(),
         password
       );
   
-      // 2) Lookup role from Firestore
+      //Lookup role from Firestore
       const uid = userCred.user.uid;
       const userDoc = await getDoc(doc(db, 'users', uid));
       const role = userDoc.exists() ? userDoc.data().role : 'member';
@@ -51,7 +51,6 @@ const SignIn = () => {
       setIsSubmitting(false);
   
       if (role === 'admin') {
-        // 3) Ask admin where to go
         Alert.alert(
           'Welcome Admin',
           'Where would you like to go?',

@@ -26,7 +26,7 @@ def firebase_sign_in(email, password):
     })
     r.raise_for_status()
     data = r.json()
-    return data["idToken"], data["localId"]    # JWT token, then your UID
+    return data["idToken"], data["localId"]
 
 def lookup_user_by_email(target_email):
     url = f"https://identitytoolkit.googleapis.com/v1/accounts:lookup?key={API_KEY}"
@@ -48,7 +48,7 @@ def send_message(id_token, from_uid, to_uid, text):
     body = {
         "fields": {
             "createdAt": {"timestampValue": datetime.utcnow().isoformat() + "Z"},
-            "senderId": {"stringValue": from_uid},  # Changed from 'sender' to 'senderId'
+            "senderId": {"stringValue": from_uid},
             "text": {"stringValue": text},
 
         }

@@ -100,7 +100,7 @@ const Home = () => {
             </View>
 
             <View className="bg-gray-800 p-6 rounded-lg shadow-md mt-2">
-
+              
             </View>
           </View>
         </ScrollView>

@@ -41,7 +41,6 @@ const SignUp = () => {
         password
       );
 
-      // Mirror into Firestore with fixed 'member' role
       await setDoc(doc(db, 'users', user.uid), {
         username,
         email:           user.email,

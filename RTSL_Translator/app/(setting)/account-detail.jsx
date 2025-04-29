@@ -33,7 +33,7 @@ const AccountDetail = () => {
   const [loading, setLoading]               = useState(true);
   const [phone, setPhone]                   = useState('');
   const [username, setUsername]             = useState('');
-  const [profileBase64, setProfileBase64]   = useState(null); // Base64 string
+  const [profileBase64, setProfileBase64]   = useState(null);
   const [newPhone, setNewPhone]             = useState('');
   const [newUsername, setNewUsername]       = useState('');
   const [password, setPassword]             = useState('');
