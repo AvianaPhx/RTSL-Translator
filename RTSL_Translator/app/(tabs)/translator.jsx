@@ -102,7 +102,6 @@ const Translator = () => {
     const chatId = `${ids[0]}_${ids[1]}`;
     const encodedName = encodeURIComponent(friend.username);
 
-    // clear the new-message highlight by updating local lastReads
     const preview = previews[friend.uid];
     if (preview && preview.senderId !== uid) {
       setLastReads(prev => ({

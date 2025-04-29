@@ -67,7 +67,7 @@ const SignIn = () => {
           { cancelable: false }
         );
       } else {
-        router.replace('/welcome'); // Regular user → straight to welcome
+        router.replace('/welcome'); // Regular user -> straight to welcome
       }
     } catch (error) {
       setIsSubmitting(false);

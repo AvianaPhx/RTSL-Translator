@@ -94,13 +94,23 @@ const Home = () => {
           </View>
 
           {/* Info Sections */}
-          <View className="gap-4 mt-10">
+          <View className="gap-4 mt-7">
             <View className="bg-gray-800 p-6 rounded-lg shadow-md">
-              
+              <Text className="ml-3 text-2xl text-white">
+                RTSL-Translator
+              </Text>
+              <Text className='ml-3 text-white'>
+                Break communication barriers with our app! Using advanced AI and computer vision, the app translates sign language gestures into text and speech in real time.
+              </Text>
             </View>
 
             <View className="bg-gray-800 p-6 rounded-lg shadow-md mt-2">
-              
+              <Text className="ml-3 text-2xl text-white">
+                Connect with a Friend!
+              </Text>
+              <Text className='ml-3 text-white'>
+                Track your sign language progress with detailed insights on your most-used signs, translation accuracy, and overall performance.
+              </Text>
             </View>
           </View>
         </ScrollView>

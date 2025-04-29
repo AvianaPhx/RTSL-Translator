@@ -18,7 +18,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/avatar-icon.png",
+        "foregroundImage": "./assets/images/images/Grind.png",
         "backgroundColor": "#000000"
       },
       "package": "com.galaxies.RTSL"

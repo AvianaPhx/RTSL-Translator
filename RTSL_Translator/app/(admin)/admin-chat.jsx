@@ -21,7 +21,6 @@ const AdminChat = () => {
     const fetchRooms = async () => {
       setLoading(true);
       try {
-        // 1) Get all adminRooms (one per user who tapped "chat with admin")
         const roomsSnap = await getDocs(
           collection(db, 'adminRooms')
         );
@@ -29,7 +28,6 @@ const AdminChat = () => {
         const loaded = await Promise.all(
           roomsSnap.docs.map(async (roomDoc) => {
             const data = roomDoc.data();
-            // 2) Lookup the user's profile
             const userSnap = await getDoc(doc(db, 'users', data.userId));
             const user = userSnap.exists() ? userSnap.data() : {};
             return {
@@ -42,7 +40,6 @@ const AdminChat = () => {
           })
         );
 
-        // 3) Sort by creation time descending
         loaded.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
         setRooms(loaded);
