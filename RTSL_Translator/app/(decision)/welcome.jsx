@@ -2,7 +2,7 @@ import { View, Text, Animated } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { auth, db } from '@/config/firebase';
+import { auth, db } from '../../firebaseConfig';
 import { doc, getDoc } from "firebase/firestore"; 
 
 const Welcome = ({ route }) => {

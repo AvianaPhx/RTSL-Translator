@@ -4,10 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FormField from '@/components/FormField';
 import CustomButton from '@/components/CustomButton';
 import { router, Link } from 'expo-router';
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { auth, db } from '@/config/firebase';
-import { doc, getDoc } from 'firebase/firestore';
 
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
+import { auth, db } from '../../firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
 
 const SignIn = () => {
   
@@ -142,7 +142,7 @@ const SignIn = () => {
 
               <View className="flex-row justify-center pt-5">
                 <Text className="text-center text-xl text-gray-400">Don't have an account?</Text>
-                <Link href="/sign-up" className="font-psemibold text-xl text-purple-400 ml-2">
+                <Link href="/welcome" className="font-psemibold text-xl text-purple-400 ml-2">
                   Sign Up
                 </Link>
               </View>

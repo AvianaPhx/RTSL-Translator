@@ -4,13 +4,14 @@
     "slug": "RTSL",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/avatar-icon.png",
+    "icon": "./assets/images/react-logo.png",
     "scheme": "rtsl",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.galaxies.RTSL",
+      
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "We need camera access to take photos."
@@ -18,10 +19,11 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/images/Grind.png",
+        "foregroundImage": "./assets/images/Grind.png",
         "backgroundColor": "#000000"
       },
-      "package": "com.galaxies.RTSL"
+      "package": "com.galaxies.RTSL",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -38,8 +40,8 @@
       [
         "expo-build-properties",
         {
-          "ios": {
-            "useFrameworks": "static"
+          "android": {
+            "googleServicesFile": "./google-services.json"
           }
         }
       ],
@@ -66,6 +68,7 @@
       "eas": {
         "projectId": "2118362e-4287-4ca6-90f8-2006da744fc1"
       }
-    }
+    },
+    "owner": "avianaphoenix"
   }
 }

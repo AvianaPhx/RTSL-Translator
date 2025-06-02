@@ -1,4 +1,3 @@
-// app/admin-chat/index.js
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -10,7 +9,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { collection, getDocs, doc, getDoc, orderBy } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db } from '../../firebaseConfig';
+
 
 const AdminChat = () => {
   const [rooms, setRooms] = useState([]);

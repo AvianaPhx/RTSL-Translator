@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { auth, db } from '@/config/firebase';
+import { auth, db } from '../../firebaseConfig';
 import {
   collection,
   query,

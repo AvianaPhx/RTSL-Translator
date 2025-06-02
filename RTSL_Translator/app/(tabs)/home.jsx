@@ -10,7 +10,8 @@ import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TabBar from '@/components/TabBar';
-import { auth, db } from '@/config/firebase';
+
+import { auth, db } from '../../firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 
 const Home = () => {

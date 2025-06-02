@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { auth, db } from '@/config/firebase';
+import { auth, db } from '../../firebaseConfig';
 import {
   collection,
   query,

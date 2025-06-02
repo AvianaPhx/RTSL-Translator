@@ -1,7 +1,6 @@
 import { View, Text, StyleSheet, ImageBackground, Pressable, Button } from 'react-native'
 import React from 'react'
 import { Link } from 'expo-router'
-import backgroundCover from "@/assets/images/Avatar.png"
 import { LinearGradient } from 'expo-linear-gradient'
 
 const app = () => {

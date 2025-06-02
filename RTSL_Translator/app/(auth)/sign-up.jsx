@@ -1,12 +1,13 @@
-import { View, Text, Pressable, Image, Alert, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import { auth, db } from '@/firebaseConfig';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+
+import { View, Text, Pressable, Alert, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FormField from '@/components/FormField';
 import CustomButton from '@/components/CustomButton';
 import { router } from 'expo-router';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth, db } from '@/config/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
 
 const SignUp = () => {

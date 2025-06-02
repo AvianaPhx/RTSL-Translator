@@ -15,7 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import SettingsRow from '@/components/SettingsRow';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
-import { auth, db } from '@/config/firebase';
+import { useRouter } from 'expo-router';
+import { auth, db } from '../../firebaseConfig';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import {
   reauthenticateWithCredential,
@@ -24,7 +25,6 @@ import {
   deleteUser,
   signOut
 } from 'firebase/auth';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 const AccountDetail = () => {

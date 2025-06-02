@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import {
   collection,
   getDocs,
@@ -23,8 +24,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { db, auth } from '@/config/firebase';
-import { useRouter } from 'expo-router';
+import { db, auth } from '../../firebaseConfig';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);

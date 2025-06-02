@@ -11,7 +11,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import TabButton from '@/components/TabButton';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { auth, db } from '@/config/firebase';
+import { auth, db } from '../../firebaseConfig';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 

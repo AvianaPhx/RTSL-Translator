@@ -4,7 +4,7 @@ import { View, Text, Image, ActivityIndicator, TouchableOpacity } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
-import { db, auth } from '@/config/firebase';
+import { db, auth } from '../../firebaseConfig';
 import { FontAwesome } from '@expo/vector-icons';
 
 const UserProfile = () => {

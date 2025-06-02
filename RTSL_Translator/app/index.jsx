@@ -1,5 +1,4 @@
 import { View, Text, ImageBackground, Pressable, Dimensions, ScrollView } from 'react-native'
-import React from 'react'
 import { router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import backgroundCover from "@/assets/images/Grind.png"
