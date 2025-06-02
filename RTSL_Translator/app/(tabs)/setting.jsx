@@ -69,6 +69,7 @@ const Setting = () => {
   return (
     <SafeAreaView className="flex-1 bg-gray-900">
       <View className="flex-row justify-between items-center mx-5 my-4">
+        
         <View>
           <Text className="font-bold text-5xl text-purple-400">
             {userData?.username || 'User'}

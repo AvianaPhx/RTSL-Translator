@@ -13,7 +13,7 @@ const TabsLayout = () => {
           <Stack.Screen name="translator" options={{ headerShown: false, gestureEnabled: false  }} />
           <Stack.Screen name="chat" options={{ headerShown: false}} />
           <Stack.Screen name="connect" options={{ headerShown: false, gestureEnabled: false  }} />
-          <Stack.Screen name="setting" options={{ headerShown: false}} />
+          <Stack.Screen name="setting" options={{ headerShown: false, gestureEnabled: true }} />
           <Stack.Screen name="user-profile" options={{ headerShown: false}} />
         </Stack>
   
